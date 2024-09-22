@@ -47,3 +47,35 @@ class CheckForExtensionsUpdateState extends _$CheckForExtensionsUpdateState {
         isar.settings.putSync(settings!..checkForExtensionUpdates = value));
   }
 }
+
+@riverpod
+class ChangeMangaSourcesState extends _$ChangeMangaSourcesState {
+  @override
+  String build() {
+    return isar.settings.getSync(227)!.fetchMangaSourcesListUrl ??
+        "https://kodjodevf.github.io/mangayomi-extensions/index.json";
+  }
+
+  void set(String value) {
+    final settings = isar.settings.getSync(227);
+    state = value;
+    isar.writeTxnSync(() =>
+        isar.settings.putSync(settings!..fetchMangaSourcesListUrl = value));
+  }
+}
+
+@riverpod
+class ChangeAnimeSourcesState extends _$ChangeAnimeSourcesState {
+  @override
+  String build() {
+    return isar.settings.getSync(227)!.fetchAnimeSourcesListUrl ??
+        "https://kodjodevf.github.io/mangayomi-extensions/anime_index.json";
+  }
+
+  void set(String value) {
+    final settings = isar.settings.getSync(227);
+    state = value;
+    isar.writeTxnSync(() =>
+        isar.settings.putSync(settings!..fetchAnimeSourcesListUrl = value));
+  }
+}

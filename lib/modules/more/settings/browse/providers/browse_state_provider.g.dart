@@ -57,5 +57,39 @@ final checkForExtensionsUpdateStateProvider =
 );
 
 typedef _$CheckForExtensionsUpdateState = AutoDisposeNotifier<bool>;
+String _$changeMangaSourcesStateHash() =>
+    r'4f427afc902a8f56a7e68a3ffbdc948ad598ed76';
+
+/// See also [ChangeMangaSourcesState].
+@ProviderFor(ChangeMangaSourcesState)
+final changeMangaSourcesStateProvider =
+    AutoDisposeNotifierProvider<ChangeMangaSourcesState, String>.internal(
+  ChangeMangaSourcesState.new,
+  name: r'changeMangaSourcesStateProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$changeMangaSourcesStateHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$ChangeMangaSourcesState = AutoDisposeNotifier<String>;
+String _$changeAnimeSourcesStateHash() =>
+    r'6bcc40c423b88a232be899c9283027fa06e96595';
+
+/// See also [ChangeAnimeSourcesState].
+@ProviderFor(ChangeAnimeSourcesState)
+final changeAnimeSourcesStateProvider =
+    AutoDisposeNotifierProvider<ChangeAnimeSourcesState, String>.internal(
+  ChangeAnimeSourcesState.new,
+  name: r'changeAnimeSourcesStateProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$changeAnimeSourcesStateHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$ChangeAnimeSourcesState = AutoDisposeNotifier<String>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

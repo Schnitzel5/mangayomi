@@ -121,6 +121,10 @@ class Settings {
 
   bool? checkForExtensionUpdates;
 
+  String? fetchMangaSourcesListUrl;
+
+  String? fetchAnimeSourcesListUrl;
+
   @enumerated
   late ScaleType scaleType;
 
@@ -243,6 +247,8 @@ class Settings {
       this.pagePreloadAmount = 6,
       this.scaleType = ScaleType.fitScreen,
       this.checkForExtensionUpdates = true,
+      this.fetchMangaSourcesListUrl = "https://kodjodevf.github.io/mangayomi-extensions/index.json",
+      this.fetchAnimeSourcesListUrl = "https://kodjodevf.github.io/mangayomi-extensions/anime_index.json",
       this.backgroundColor = BackgroundColor.black,
       this.personalPageModeList,
       this.backupFrequency,
@@ -317,6 +323,8 @@ class Settings {
           .toList();
     }
     checkForExtensionUpdates = json['checkForExtensionUpdates'];
+    fetchMangaSourcesListUrl = json['fetchMangaSourcesListUrl'];
+    fetchAnimeSourcesListUrl = json['fetchAnimeSourcesListUrl'];
     if (json['cookiesList'] != null) {
       cookiesList = (json['cookiesList'] as List)
           .map((e) => MCookie.fromJson(e))
@@ -453,6 +461,8 @@ class Settings {
         'chapterPageUrlsList':
             chapterPageUrlsList?.map((v) => v.toJson()).toList(),
         'checkForExtensionUpdates': checkForExtensionUpdates,
+        'fetchMangaSourcesListUrl': fetchMangaSourcesListUrl,
+        'fetchAnimeSourcesListUrl': fetchAnimeSourcesListUrl,
         'cookiesList': cookiesList,
         'cropBorders': cropBorders,
         'dateFormat': dateFormat,

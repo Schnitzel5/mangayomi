@@ -13,6 +13,7 @@ import 'package:mangayomi/models/chapter.dart';
 import 'package:mangayomi/models/history.dart';
 import 'package:mangayomi/models/settings.dart';
 import 'package:mangayomi/models/source.dart';
+import 'package:mangayomi/modules/more/settings/browse/providers/browse_state_provider.dart';
 import 'package:mangayomi/modules/more/settings/sync/models/jwt.dart';
 import 'package:mangayomi/modules/more/settings/sync/providers/sync_providers.dart';
 import 'package:mangayomi/modules/more/settings/appearance/providers/blend_level_state_provider.dart';
@@ -57,6 +58,8 @@ class SyncServer extends _$SyncServer {
           email: username,
           server: server,
           authToken: jsonData["token"]));
+      ref.read(changeMangaSourcesStateProvider.notifier).set(_getSourcesList(true));
+      ref.read(changeAnimeSourcesStateProvider.notifier).set(_getSourcesList(false));
       botToast(l10n.sync_logged);
       return (true, "");
     } catch (e) {
@@ -322,8 +325,9 @@ class SyncServer extends _$SyncServer {
         final history = (backup["history"] as List?)
             ?.map((e) => History.fromJson(e))
             .toList();
-        final updates =
-            (backup["updates"] as List?)?.map((e) => Update.fromJson(e)).toList();
+        final updates = (backup["updates"] as List?)
+            ?.map((e) => Update.fromJson(e))
+            .toList();
 
         isar.writeTxnSync(() {
           isar.mangas.clearSync();
@@ -361,7 +365,8 @@ class SyncServer extends _$SyncServer {
                           chapter.name == update.chapterName)
                       .firstOrNull;
                   if (matchingChapter != null) {
-                    isar.updates.putSync(update..chapter.value = matchingChapter);
+                    isar.updates
+                        .putSync(update..chapter.value = matchingChapter);
                     update.chapter.saveSync();
                   }
                 }
@@ -416,8 +421,9 @@ class SyncServer extends _$SyncServer {
         final extensionsPref = (backup["extensions_preferences"] as List?)
             ?.map((e) => SourcePreference.fromJson(e))
             .toList();
-        final updates =
-            (backup["updates"] as List?)?.map((e) => Update.fromJson(e)).toList();
+        final updates = (backup["updates"] as List?)
+            ?.map((e) => Update.fromJson(e))
+            .toList();
 
         isar.writeTxnSync(() {
           isar.mangas.clearSync();
@@ -455,7 +461,8 @@ class SyncServer extends _$SyncServer {
                           chapter.name == update.chapterName)
                       .firstOrNull;
                   if (matchingChapter != null) {
-                    isar.updates.putSync(update..chapter.value = matchingChapter);
+                    isar.updates
+                        .putSync(update..chapter.value = matchingChapter);
                     update.chapter.saveSync();
                   }
                 }
@@ -523,6 +530,25 @@ class SyncServer extends _$SyncServer {
       throw Exception("Token expired");
     }
     return syncPrefs.authToken!;
+  }
+
+  String _getSourcesList(bool isManga) {
+    final syncPrefs = ref.watch(synchingProvider(syncId: syncId));
+    if (syncPrefs == null || syncPrefs.authToken == null) {
+      return "";
+    }
+    var paddedPayload = syncPrefs.authToken!.split(".")[1];
+    if (paddedPayload.length % 4 > 0) {
+      paddedPayload += '=' * (4 - paddedPayload.length % 4);
+    }
+    final decodedJwt = jsonDecode(utf8.decode(base64Decode(paddedPayload)))
+        as Map<String, dynamic>;
+    final auth = JWToken.fromJson(decodedJwt);
+    return isManga
+        ? auth.mangaSourcesListUrl ??
+            "https://kodjodevf.github.io/mangayomi-extensions/index.json"
+        : auth.animeSourcesListUrl ??
+            "https://kodjodevf.github.io/mangayomi-extensions/anime_index.json";
   }
 
   String _getServer() {
