@@ -1,9 +1,14 @@
+import 'dart:io';
+
+import 'package:extended_image/extended_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mangayomi/modules/more/settings/downloads/providers/downloads_state_provider.dart';
 import 'package:mangayomi/providers/l10n_providers.dart';
 import 'package:mangayomi/utils/extensions/build_context_extensions.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 
 class DownloadsScreen extends ConsumerStatefulWidget {
   const DownloadsScreen({super.key});
@@ -20,6 +25,7 @@ class _DownloadsScreenState extends ConsumerState<DownloadsScreen> {
     final saveAsCBZArchiveState = ref.watch(saveAsCBZArchiveStateProvider);
     final onlyOnWifiState = ref.watch(onlyOnWifiStateProvider);
     final downloadLocationState = ref.watch(downloadLocationStateProvider);
+    final cacheImagesDirectory = getTemporaryDirectory();
     ref.read(downloadLocationStateProvider.notifier).refresh();
     final l10n = l10nLocalizations(context);
     return Scaffold(
@@ -117,6 +123,33 @@ class _DownloadsScreenState extends ConsumerState<DownloadsScreen> {
                 title: Text(l10n.save_as_cbz_archive),
                 onChanged: (value) {
                   ref.read(saveAsCBZArchiveStateProvider.notifier).set(value);
+                }),
+            IconButton(
+                onPressed: () async {
+                  final Directory cacheImagesDirectory = Directory(join(
+                      (await getTemporaryDirectory()).path,
+                      cacheImageFolderName));
+                  cacheImagesDirectory.deleteSync(recursive: true);
+                },
+                icon: Icon(
+                  Icons.cached_outlined,
+                  color: Theme.of(context).hintColor,
+                )),
+            FutureBuilder(
+                future: cacheImagesDirectory,
+                builder:
+                    (BuildContext context, AsyncSnapshot<Directory> snapshot) {
+                  if (snapshot.hasData) {
+                    final Directory cacheImagesDirectory = Directory(
+                        join(snapshot.data!.path, cacheImageFolderName));
+                    final cacheImageSize = cacheImagesDirectory.statSync().size;
+                    return Text("${l10n.image_cache_size}: $cacheImageSize",
+                        style: TextStyle(
+                            fontSize: 11, color: context.secondaryColor));
+                  }
+                  return Text("${l10n.image_cache_size}: -",
+                      style: TextStyle(
+                          fontSize: 11, color: context.secondaryColor));
                 }),
           ],
         ),
