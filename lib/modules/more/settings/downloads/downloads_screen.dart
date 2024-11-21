@@ -142,8 +142,8 @@ class _DownloadsScreenState extends ConsumerState<DownloadsScreen> {
                   if (snapshot.hasData) {
                     final Directory cacheImagesDirectory = Directory(
                         join(snapshot.data!.path, cacheImageFolderName));
-                    final cacheImageSize = cacheImagesDirectory.statSync().size;
-                    return Text("${l10n.image_cache_size}: $cacheImageSize",
+                    final cacheImageSize = getDirSize(cacheImagesDirectory);
+                    return Text("${l10n.image_cache_size}: ${cacheImageSize / 1000000} MB",
                         style: TextStyle(
                             fontSize: 11, color: context.secondaryColor));
                   }
@@ -155,5 +155,11 @@ class _DownloadsScreenState extends ConsumerState<DownloadsScreen> {
         ),
       ),
     );
+  }
+
+  int getDirSize(Directory dir) {
+    var files = dir.listSync(recursive: true).toList();
+    var dirSize = files.fold(0, (int sum, file) => sum + file.statSync().size);
+    return dirSize;
   }
 }
