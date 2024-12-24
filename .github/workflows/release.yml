@@ -34,10 +34,17 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
+      - name: Setup cmake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.18.1'
+
+      - name: Setup ninja
+        uses: seanmiddleditch/gha-setup-ninja@master
+
       - name: Install the CLI tool
         run: cargo install 'flutter_rust_bridge_codegen'
         
-
       - name: Setup Android keystore
         run: |
           echo "${{ secrets.SIGNING_KEY_STORE_BASE64 }}" | base64 -di > android/app/upload-keystore.jks
