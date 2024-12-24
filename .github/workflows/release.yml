@@ -39,6 +39,9 @@ jobs:
         with:
           cmake-version: '3.18.1'
 
+      - name: Setup ninja
+        uses: ashutoshvarma/setup-ninja@master
+
       - name: Install the CLI tool
         run: cargo install 'flutter_rust_bridge_codegen'
         
