@@ -103,7 +103,7 @@ jobs:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
           BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.BUILD_PROVISION_PROFILE_BASE64 }}
         run: |
-          echo "$CERTIFICATE_FILE_B64" | base64 --decode > certificate.p12
+          echo "$BUILD_CERTIFICATE_BASE64" | base64 --decode > certificate.p12
           echo "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode > profile.mobileprovision
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
