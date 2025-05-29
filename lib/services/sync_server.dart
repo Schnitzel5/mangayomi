@@ -50,10 +50,13 @@ class SyncServer extends _$SyncServer {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': username, 'password': password}),
       );
-      var jsonData = jsonDecode(response.body) as Map<String, dynamic>;
-      if (response.statusCode != 200) {
-        return (false, jsonData["error"] as String);
+      var cookieHeader = response.headers["set-cookie"];
+      var startIdx = cookieHeader?.indexOf("id=") ?? -1;
+      var endIdx = cookieHeader?.indexOf(";", startIdx) ?? -1;
+      if (startIdx != -1 && endIdx != -1) {
+        return (false, "Auth failed");
       }
+      final authToken = cookieHeader!.substring(startIdx + 3, endIdx);
       ref
           .read(synchingProvider(syncId: syncId).notifier)
           .login(
@@ -61,7 +64,7 @@ class SyncServer extends _$SyncServer {
               syncId: syncId,
               email: username,
               server: server,
-              authToken: jsonData["token"],
+              authToken: authToken,
             ),
           );
       botToast(l10n.sync_logged);
@@ -86,7 +89,7 @@ class SyncServer extends _$SyncServer {
           Uri.parse('${_getServer()}$_syncUrl'),
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer $accessToken',
+            'Cookie': 'id=$accessToken',
           },
           body: jsonEncode({'changedParts': changedParts}),
         );
@@ -125,7 +128,7 @@ class SyncServer extends _$SyncServer {
         Uri.parse('${_getServer()}$_checkUrl'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
+          'Cookie': 'id=$accessToken',
         },
       );
       if (response.statusCode != 200) {
@@ -152,7 +155,7 @@ class SyncServer extends _$SyncServer {
         Uri.parse('${_getServer()}$_snapshotUrl'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
+          'Cookie': 'id=$accessToken',
         },
       );
       if (response.statusCode != 200) {
@@ -183,7 +186,7 @@ class SyncServer extends _$SyncServer {
         Uri.parse('${_getServer()}$_snapshotUrl/$snapshotId'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
+          'Cookie': 'id=$accessToken',
         },
       );
       if (response.statusCode != 200) {
@@ -216,7 +219,7 @@ class SyncServer extends _$SyncServer {
         Uri.parse('${_getServer()}$_snapshotUrl'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
+          'Cookie': 'id=$accessToken',
         },
       );
       if (response.statusCode == 400) {
@@ -241,7 +244,7 @@ class SyncServer extends _$SyncServer {
         Uri.parse('${_getServer()}$_snapshotUrl/$snapshotId'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
+          'Cookie': 'id=$accessToken',
         },
       );
       if (response.statusCode != 200) {
@@ -264,7 +267,7 @@ class SyncServer extends _$SyncServer {
         Uri.parse('${_getServer()}$_uploadUrl'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
+          'Cookie': 'id=$accessToken',
         },
         body: jsonEncode({'backupData': datas}),
       );
@@ -299,7 +302,7 @@ class SyncServer extends _$SyncServer {
         Uri.parse('${_getServer()}$_downloadUrl'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
+          'Cookie': 'id=$accessToken',
         },
       );
       if (response.statusCode != 200) {
