@@ -175,7 +175,7 @@ final useLibassStateProvider =
 );
 
 typedef _$UseLibassState = AutoDisposeNotifier<bool>;
-String _$hwdecModeStateHash() => r'e8b8e2b378eb9ac687bd8dad5637a816ad33fedb';
+String _$hwdecModeStateHash() => r'f70291c7681864a58dffe1aed03f6bc46a7ddc15';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -198,10 +198,11 @@ class _SystemHash {
   }
 }
 
-abstract class _$HwdecModeState extends BuildlessAutoDisposeNotifier<String> {
+abstract class _$HwdecModeState
+    extends BuildlessAutoDisposeNotifier<(String, String?)> {
   late final bool rawValue;
 
-  String build({
+  (String, String?) build({
     bool rawValue = false,
   });
 }
@@ -211,7 +212,7 @@ abstract class _$HwdecModeState extends BuildlessAutoDisposeNotifier<String> {
 const hwdecModeStateProvider = HwdecModeStateFamily();
 
 /// See also [HwdecModeState].
-class HwdecModeStateFamily extends Family<String> {
+class HwdecModeStateFamily extends Family<(String, String?)> {
   /// See also [HwdecModeState].
   const HwdecModeStateFamily();
 
@@ -250,7 +251,7 @@ class HwdecModeStateFamily extends Family<String> {
 
 /// See also [HwdecModeState].
 class HwdecModeStateProvider
-    extends AutoDisposeNotifierProviderImpl<HwdecModeState, String> {
+    extends AutoDisposeNotifierProviderImpl<HwdecModeState, (String, String?)> {
   /// See also [HwdecModeState].
   HwdecModeStateProvider({
     bool rawValue = false,
@@ -281,7 +282,7 @@ class HwdecModeStateProvider
   final bool rawValue;
 
   @override
-  String runNotifierBuild(
+  (String, String?) runNotifierBuild(
     covariant HwdecModeState notifier,
   ) {
     return notifier.build(
@@ -306,7 +307,8 @@ class HwdecModeStateProvider
   }
 
   @override
-  AutoDisposeNotifierProviderElement<HwdecModeState, String> createElement() {
+  AutoDisposeNotifierProviderElement<HwdecModeState, (String, String?)>
+      createElement() {
     return _HwdecModeStateProviderElement(this);
   }
 
@@ -326,14 +328,13 @@ class HwdecModeStateProvider
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin HwdecModeStateRef on AutoDisposeNotifierProviderRef<String> {
+mixin HwdecModeStateRef on AutoDisposeNotifierProviderRef<(String, String?)> {
   /// The parameter `rawValue` of this provider.
   bool get rawValue;
 }
 
-class _HwdecModeStateProviderElement
-    extends AutoDisposeNotifierProviderElement<HwdecModeState, String>
-    with HwdecModeStateRef {
+class _HwdecModeStateProviderElement extends AutoDisposeNotifierProviderElement<
+    HwdecModeState, (String, String?)> with HwdecModeStateRef {
   _HwdecModeStateProviderElement(super.provider);
 
   @override

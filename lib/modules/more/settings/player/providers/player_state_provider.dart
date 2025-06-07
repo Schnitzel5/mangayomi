@@ -192,30 +192,45 @@ final hwdecs = {
   "videotoolbox-copy": ["ios"],
   "nvdec": ["all"],
   "nvdec-copy": ["all"],
+  "vulkan": ["all"],
+  "vulkan-copy": ["all"],
   "mediacodec": ["android"],
   "mediacodec-copy": ["android"],
   "crystalhd": ["all"],
 };
 
+final voPreferences = {
+  "d3d11va": "gpu",
+  "d3d11va-copy": "gpu",
+  "nvdec": "gpu",
+  "nvdec-copy": "gpu",
+  "vulkan": "gpu-next",
+  "vulkan-copy": "gpu-next",
+  "mediacodec": "mediacodec_embed",
+  "mediacodec-copy": "mediacodec_embed",
+};
+
 @riverpod
 class HwdecModeState extends _$HwdecModeState {
   @override
-  String build({bool rawValue = false}) {
+  (String, String?) build({bool rawValue = false}) {
     final hwdecMode = isar.settings.getSync(227)!.hwdecMode ?? "auto";
     if (rawValue) {
-      return hwdecMode;
+      return (hwdecMode, null);
     }
     final hwdecSupport = hwdecs[hwdecMode] ?? [];
     if (!hwdecSupport.contains("all") &&
         !hwdecSupport.contains(Platform.operatingSystem)) {
-      return Platform.isAndroid ? "auto-safe" : "auto";
+      print("DEBUG 1: $hwdecMode");
+      return Platform.isAndroid ? ("auto-safe", "gpu") : ("auto", "libmpv");
     }
-    return hwdecMode;
+    print("DEBUG 2: $hwdecMode - ${voPreferences[hwdecMode]}");
+    return (hwdecMode, voPreferences[hwdecMode]);
   }
 
   void set(String value) {
     final settings = isar.settings.getSync(227);
-    state = value;
+    state = (value, voPreferences[value]);
     isar.writeTxnSync(
       () => isar.settings.putSync(settings!..hwdecMode = value),
     );

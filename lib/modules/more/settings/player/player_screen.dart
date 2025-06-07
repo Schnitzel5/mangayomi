@@ -479,6 +479,8 @@ class PlayerScreen extends ConsumerWidget {
                   ("videotoolbox-copy", "(iOS 9.0+)"),
                   ("nvdec", "(CUDA)"),
                   ("nvdec-copy", "(CUDA)"),
+                  ("vulkan", ""),
+                  ("vulkan-copy", ""),
                   ("mediacodec", "- HW (Android)"),
                   ("mediacodec-copy", "- HW+ (Android)"),
                   ("crystalhd", ""),
@@ -498,10 +500,14 @@ class PlayerScreen extends ConsumerWidget {
                               dense: true,
                               contentPadding: const EdgeInsets.all(0),
                               value: values[index].$1,
-                              groupValue: hwdecMode,
+                              groupValue: hwdecMode.$1,
                               onChanged: (value) {
                                 ref
-                                    .read(hwdecModeStateProvider(rawValue: true).notifier)
+                                    .read(
+                                      hwdecModeStateProvider(
+                                        rawValue: true,
+                                      ).notifier,
+                                    )
                                     .set(value!);
                                 Navigator.pop(context);
                               },
@@ -538,7 +544,7 @@ class PlayerScreen extends ConsumerWidget {
               },
               title: Text(context.l10n.hwdec),
               subtitle: Text(
-                hwdecMode,
+                hwdecMode.$1,
                 style: TextStyle(fontSize: 11, color: context.secondaryColor),
               ),
             ),

@@ -186,7 +186,10 @@ class _AnimeStreamPageState extends riv.ConsumerState<AnimeStreamPage>
   late final hwdecMode = ref.read(hwdecModeStateProvider());
   late final VideoController _controller = VideoController(
     _player,
-    configuration: VideoControllerConfiguration(hwdec: hwdecMode),
+    configuration: VideoControllerConfiguration(
+      hwdec: hwdecMode.$1,
+      vo: hwdecMode.$2,
+    ),
   );
   late final _streamController = ref.read(
     animeStreamControllerProvider(episode: widget.episode).notifier,
