@@ -528,5 +528,6 @@
   "recommendations_weights_synopsis": "Story Similarity",
   "recommendations_weights_theme": "Theme Similarity",
   "downloaded_only": "Downloaded only",
-  "downloaded_only_description": "Only show downloaded entries in your library"
+  "downloaded_only_description": "Only show downloaded entries in your library",
+  "extension_settings": "Extension settings"
 }
