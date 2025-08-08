@@ -1666,9 +1666,8 @@ class AppLocalizationsDe extends AppLocalizations {
       'Type \'manga\', \'anime\' and/or \'novel\' (separated by a comma) to remove all related entries';
 
   @override
-  String get enable_pip => 'Enable Picture-in-Picture (PiP)';
+  String get recommendations => 'Recommendations';
 
   @override
-  String get enable_auto_pip =>
-      'Enter PiP automatically when moving out of app';
+  String get extension_settings => 'Extension settings';
 }
