@@ -1688,4 +1688,14 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get recommendations_weights_theme => 'Theme Similarity';
+
+  @override
+  String get downloaded_only => 'Downloaded only';
+
+  @override
+  String get downloaded_only_description =>
+      'Only show downloaded entries in your library';
+
+  @override
+  String get extension_settings => 'Extension settings';
 }

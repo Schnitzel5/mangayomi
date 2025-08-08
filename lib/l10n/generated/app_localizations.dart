@@ -3236,6 +3236,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Theme Similarity'**
   String get recommendations_weights_theme;
+
+  /// No description provided for @downloaded_only.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded only'**
+  String get downloaded_only;
+
+  /// No description provided for @downloaded_only_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Only show downloaded entries in your library'**
+  String get downloaded_only_description;
+
+  /// No description provided for @extension_settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Extension settings'**
+  String get extension_settings;
 }
 
 class _AppLocalizationsDelegate
