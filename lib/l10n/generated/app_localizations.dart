@@ -3195,17 +3195,47 @@ abstract class AppLocalizations {
   /// **'Type \'manga\', \'anime\' and/or \'novel\' (separated by a comma) to remove all related entries'**
   String get clear_library_input;
 
-  /// No description provided for @enable_pip.
+  /// No description provided for @recommendations.
   ///
   /// In en, this message translates to:
-  /// **'Enable Picture-in-Picture (PiP)'**
-  String get enable_pip;
+  /// **'Recommendations'**
+  String get recommendations;
 
-  /// No description provided for @enable_auto_pip.
+  /// No description provided for @recommendations_similar.
   ///
   /// In en, this message translates to:
-  /// **'Enter PiP automatically when moving out of app'**
-  String get enable_auto_pip;
+  /// **'similar'**
+  String get recommendations_similar;
+
+  /// No description provided for @recommendations_weights.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommendation Weights'**
+  String get recommendations_weights;
+
+  /// No description provided for @recommendations_weights_genre.
+  ///
+  /// In en, this message translates to:
+  /// **'Genre Similarity'**
+  String get recommendations_weights_genre;
+
+  /// No description provided for @recommendations_weights_setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Setting Similarity'**
+  String get recommendations_weights_setting;
+
+  /// No description provided for @recommendations_weights_synopsis.
+  ///
+  /// In en, this message translates to:
+  /// **'Story Similarity'**
+  String get recommendations_weights_synopsis;
+
+  /// No description provided for @recommendations_weights_theme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme Similarity'**
+  String get recommendations_weights_theme;
 }
 
 class _AppLocalizationsDelegate

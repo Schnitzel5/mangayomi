@@ -521,5 +521,10 @@
   "clear_library_desc": "Choose to clear all manga, anime and/or novel entries",
   "clear_library_input": "Type 'manga', 'anime' and/or 'novel' (separated by a comma) to remove all related entries",
   "recommendations": "Recommendations",
-  "recommendations_similarity": "Similarity:"
+  "recommendations_similar": "similar",
+  "recommendations_weights": "Recommendation Weights",
+  "recommendations_weights_genre": "Genre Similarity",
+  "recommendations_weights_setting": "Setting Similarity",
+  "recommendations_weights_synopsis": "Story Similarity",
+  "recommendations_weights_theme": "Theme Similarity"
 }
