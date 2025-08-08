@@ -1669,9 +1669,23 @@ class AppLocalizationsIt extends AppLocalizations {
       'Type \'manga\', \'anime\' and/or \'novel\' (separated by a comma) to remove all related entries';
 
   @override
-  String get enable_pip => 'Enable Picture-in-Picture (PiP)';
+  String get recommendations => 'Recommendations';
 
   @override
-  String get enable_auto_pip =>
-      'Enter PiP automatically when moving out of app';
+  String get recommendations_similar => 'similar';
+
+  @override
+  String get recommendations_weights => 'Recommendation Weights';
+
+  @override
+  String get recommendations_weights_genre => 'Genre Similarity';
+
+  @override
+  String get recommendations_weights_setting => 'Setting Similarity';
+
+  @override
+  String get recommendations_weights_synopsis => 'Story Similarity';
+
+  @override
+  String get recommendations_weights_theme => 'Theme Similarity';
 }
