@@ -5710,6 +5710,34 @@ extension SettingsQueryFilter
   }
 
   QueryBuilder<Settings, Settings, QAfterFilterCondition>
+      downloadedOnlyModeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'downloadedOnlyMode',
+      ));
+    });
+  }
+
+  QueryBuilder<Settings, Settings, QAfterFilterCondition>
+      downloadedOnlyModeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'downloadedOnlyMode',
+      ));
+    });
+  }
+
+  QueryBuilder<Settings, Settings, QAfterFilterCondition>
+      downloadedOnlyModeEqualTo(bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'downloadedOnlyMode',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Settings, Settings, QAfterFilterCondition>
       enableAniSkipIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -11082,6 +11110,19 @@ extension SettingsQuerySortBy on QueryBuilder<Settings, Settings, QSortBy> {
     });
   }
 
+  QueryBuilder<Settings, Settings, QAfterSortBy> sortByDownloadedOnlyMode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'downloadedOnlyMode', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Settings, Settings, QAfterSortBy>
+      sortByDownloadedOnlyModeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'downloadedOnlyMode', Sort.desc);
+    });
+  }
+
   QueryBuilder<Settings, Settings, QAfterSortBy> sortByEnableAniSkip() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'enableAniSkip', Sort.asc);
@@ -12427,6 +12468,19 @@ extension SettingsQuerySortThenBy
     });
   }
 
+  QueryBuilder<Settings, Settings, QAfterSortBy> thenByDownloadedOnlyMode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'downloadedOnlyMode', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Settings, Settings, QAfterSortBy>
+      thenByDownloadedOnlyModeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'downloadedOnlyMode', Sort.desc);
+    });
+  }
+
   QueryBuilder<Settings, Settings, QAfterSortBy> thenByEnableAniSkip() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'enableAniSkip', Sort.asc);
@@ -13561,6 +13615,12 @@ extension SettingsQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Settings, Settings, QDistinct> distinctByDownloadedOnlyMode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'downloadedOnlyMode');
+    });
+  }
+
   QueryBuilder<Settings, Settings, QDistinct> distinctByEnableAniSkip() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'enableAniSkip');
@@ -14340,6 +14400,12 @@ extension SettingsQueryProperty
   QueryBuilder<Settings, bool?, QQueryOperations> downloadOnlyOnWifiProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'downloadOnlyOnWifi');
+    });
+  }
+
+  QueryBuilder<Settings, bool?, QQueryOperations> downloadedOnlyModeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'downloadedOnlyMode');
     });
   }
 

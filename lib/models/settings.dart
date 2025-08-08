@@ -278,6 +278,8 @@ class Settings {
 
   late AlgorithmWeights? algorithmWeights;
 
+  bool? downloadedOnlyMode;
+
   Settings({
     this.id = 227,
     this.updatedAt = 0,
@@ -402,6 +404,7 @@ class Settings {
     this.audioChannels = AudioChannel.autoSafe,
     this.volumeBoostCap,
     this.algorithmWeights,
+    this.downloadedOnlyMode = false,
   });
 
   Settings.fromJson(Map<String, dynamic> json) {
@@ -636,6 +639,7 @@ class Settings {
     algorithmWeights = json['algorithmWeights'] != null
         ? AlgorithmWeights.fromJson(json['algorithmWeights'])
         : null;
+    downloadedOnlyMode = json['downloadedOnlyMode'];
   }
 
   Map<String, dynamic> toJson() => {
@@ -784,6 +788,7 @@ class Settings {
     'volumeBoostCap': volumeBoostCap,
     if (algorithmWeights != null)
       'algorithmWeights': algorithmWeights!.toJson(),
+    'downloadedOnlyMode': downloadedOnlyMode,
   };
 }
 
