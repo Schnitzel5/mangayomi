@@ -521,5 +521,6 @@
   "clear_library_desc": "Choose to clear all manga, anime and/or novel entries",
   "clear_library_input": "Type 'manga', 'anime' and/or 'novel' (separated by a comma) to remove all related entries",
   "recommendations": "Recommendations",
-  "recommendations_similarity": "Similarity:"
+  "downloaded_only": "Downloaded only",
+  "downloaded_only_description": "Only show downloaded entries in your library"
 }

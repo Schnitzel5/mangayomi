@@ -276,6 +276,8 @@ class Settings {
 
   int? volumeBoostCap;
 
+  bool? downloadedOnlyMode;
+
   Settings({
     this.id = 227,
     this.updatedAt = 0,
@@ -399,6 +401,7 @@ class Settings {
     this.enableAudioPitchCorrection,
     this.audioChannels = AudioChannel.autoSafe,
     this.volumeBoostCap,
+    this.downloadedOnlyMode = false,
   });
 
   Settings.fromJson(Map<String, dynamic> json) {
@@ -630,6 +633,7 @@ class Settings {
     audioChannels = AudioChannel
         .values[json['audioChannels'] ?? AudioChannel.autoSafe.index];
     volumeBoostCap = json['volumeBoostCap'];
+    downloadedOnlyMode = json['downloadedOnlyMode'];
   }
 
   Map<String, dynamic> toJson() => {
@@ -776,6 +780,7 @@ class Settings {
     'enableAudioPitchCorrection': enableAudioPitchCorrection,
     'audioChannels': audioChannels.index,
     'volumeBoostCap': volumeBoostCap,
+    'downloadedOnlyMode': downloadedOnlyMode,
   };
 }
 

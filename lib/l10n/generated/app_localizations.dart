@@ -3195,17 +3195,23 @@ abstract class AppLocalizations {
   /// **'Type \'manga\', \'anime\' and/or \'novel\' (separated by a comma) to remove all related entries'**
   String get clear_library_input;
 
-  /// No description provided for @enable_pip.
+  /// No description provided for @recommendations.
   ///
   /// In en, this message translates to:
-  /// **'Enable Picture-in-Picture (PiP)'**
-  String get enable_pip;
+  /// **'Recommendations'**
+  String get recommendations;
 
-  /// No description provided for @enable_auto_pip.
+  /// No description provided for @downloaded_only.
   ///
   /// In en, this message translates to:
-  /// **'Enter PiP automatically when moving out of app'**
-  String get enable_auto_pip;
+  /// **'Downloaded only'**
+  String get downloaded_only;
+
+  /// No description provided for @downloaded_only_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Only show downloaded entries in your library'**
+  String get downloaded_only_description;
 }
 
 class _AppLocalizationsDelegate
