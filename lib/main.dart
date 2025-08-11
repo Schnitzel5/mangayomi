@@ -42,6 +42,7 @@ import 'package:flutter/services.dart' show rootBundle;
 late Isar isar;
 DiscordRPC? discordRpc;
 WebViewEnvironment? webViewEnvironment;
+Map<String, String> jsPackages = {};
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   if (Platform.isLinux && runWebViewTitleBarWidget(args)) return;
@@ -97,6 +98,7 @@ class _MyAppState extends ConsumerState<MyApp> {
   void initState() {
     super.initState();
     initializeDateFormatting();
+    _initJsPackages();
     _initDeepLinks();
     _setupMpvConfig();
     unawaited(ref.read(scanLocalLibraryProvider.future));
@@ -334,6 +336,24 @@ class _MyAppState extends ConsumerState<MyApp> {
         }
       }
     }
+  }
+
+  Future<void> _initJsPackages() async {
+    jsPackages["polyfill/form-data"] = await _loadJsCode("formdata");
+    jsPackages["polyfill/URLSearchParams"] = await _loadJsCode("URLSearchParams");
+    jsPackages["polyfill/URL"] = await _loadJsCode("URL");
+    jsPackages["htmlparser2"] = await _loadJsCode("htmlparser2.bundle");
+    jsPackages["cheerio"] = await _loadJsCode("cheerio.bundle");
+    jsPackages["dayjs"] = await _loadJsCode("dayjs.bundle");
+    jsPackages["urlencode"] = await _loadJsCode("urlencode.bundle");
+    jsPackages["@libs/novelStatus"] = await _loadJsCode("NovelStatus");
+    jsPackages["@libs/isAbsoluteUrl"] = await _loadJsCode("isAbsoluteUrl");
+    jsPackages["@libs/filterInputs"] = await _loadJsCode("FilterTypes");
+    jsPackages["@libs/defaultCover"] = await _loadJsCode("defaultCover");
+  }
+
+  Future<String> _loadJsCode(String name) async {
+    return await rootBundle.loadString("assets/js/$name.js");
   }
 }
 
