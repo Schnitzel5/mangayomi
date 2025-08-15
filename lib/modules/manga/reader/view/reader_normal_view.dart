@@ -70,9 +70,7 @@ class _ReaderNormalState extends ConsumerState<ReaderNormalView>
       reverse: widget.isReverseHorizontal,
       physics: const ClampingScrollPhysics(),
       canScrollPage: (gestureDetails) {
-        return gestureDetails != null
-            ? !(gestureDetails.totalScale! > 1.0)
-            : true;
+        return true;
       },
       itemBuilder: (BuildContext context, int index) {
         if (widget.uChapDataPreload[index].isTransitionPage) {
