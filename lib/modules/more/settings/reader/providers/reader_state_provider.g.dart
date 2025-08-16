@@ -73,6 +73,23 @@ final cropBordersStateProvider =
 );
 
 typedef _$CropBordersState = AutoDisposeNotifier<bool>;
+String _$upscaleImagesStateHash() =>
+    r'bddea0b573cbff26eee4140c22bec066d8aa7107';
+
+/// See also [UpscaleImagesState].
+@ProviderFor(UpscaleImagesState)
+final upscaleImagesStateProvider =
+    AutoDisposeNotifierProvider<UpscaleImagesState, bool>.internal(
+  UpscaleImagesState.new,
+  name: r'upscaleImagesStateProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$upscaleImagesStateHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$UpscaleImagesState = AutoDisposeNotifier<bool>;
 String _$scaleTypeStateHash() => r'07f29cba7193242795134b6d37bb393210a191a1';
 
 /// See also [ScaleTypeState].

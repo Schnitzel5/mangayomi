@@ -16,6 +16,7 @@ import 'package:mangayomi/models/page.dart';
 import 'package:mangayomi/models/settings.dart';
 import 'package:mangayomi/modules/anime/widgets/desktop.dart';
 import 'package:mangayomi/modules/manga/reader/providers/crop_borders_provider.dart';
+import 'package:mangayomi/modules/manga/reader/providers/image_upscaling_provider.dart';
 import 'package:mangayomi/modules/manga/reader/widgets/btn_chapter_list_dialog.dart';
 import 'package:mangayomi/modules/manga/reader/double_columm_view_center.dart';
 import 'package:mangayomi/modules/manga/reader/providers/color_filter_provider.dart';
@@ -238,6 +239,7 @@ class _MangaChapterPageGalleryState
   final PhotoViewController _photoViewController = PhotoViewController();
   final PhotoViewScaleStateController _photoViewScaleStateController =
       PhotoViewScaleStateController();
+  final List<int> _upscaleImageCheckList = [];
   final List<int> _cropBorderCheckList = [];
 
   void _onScaleEnd(
@@ -1133,6 +1135,10 @@ class _MangaChapterPageGalleryState
   }
 
   void _onPageChanged(int index) {
+    final upscaleImages = ref.watch(upscaleImagesStateProvider);
+    if (upscaleImages) {
+      _processUpscaleImagesByIndex(index);
+    }
     final cropBorders = ref.watch(cropBordersStateProvider);
     if (cropBorders) {
       _processCropBordersByIndex(index);
@@ -1362,6 +1368,26 @@ class _MangaChapterPageGalleryState
           duration: const Duration(milliseconds: 1),
           curve: Curves.ease,
         );
+      }
+    }
+  }
+
+  void _processUpscaleImagesByIndex(int index) async {
+    if (!_upscaleImageCheckList.contains(index)) {
+      _upscaleImageCheckList.add(index);
+      ref
+          .watch(
+            upscaleImageProvider(
+              data: _uChapDataPreload[index],
+              upscale: true,
+            ).future,
+          )
+          .then((value) {
+            _uChapDataPreload[index] = _uChapDataPreload[index]
+              ..upscaledImage = value;
+          });
+      if (mounted) {
+        setState(() {});
       }
     }
   }
@@ -1850,6 +1876,42 @@ class _MangaChapterPageGalleryState
                             children: [
                               const Icon(Icons.crop_rounded),
                               if (!cropBorders)
+                                Positioned(
+                                  right: 8,
+                                  child: Transform.scale(
+                                    scaleX: 2.5,
+                                    child: const Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          '\\',
+                                          style: TextStyle(fontSize: 17),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final upscaleImages = ref.watch(
+                          upscaleImagesStateProvider,
+                        );
+                        return IconButton(
+                          onPressed: () {
+                            ref
+                                .read(upscaleImagesStateProvider.notifier)
+                                .set(!upscaleImages);
+                          },
+                          icon: Stack(
+                            children: [
+                              const Icon(Icons.high_quality_rounded),
+                              if (!upscaleImages)
                                 Positioned(
                                   right: 8,
                                   child: Transform.scale(
@@ -2515,6 +2577,7 @@ class UChapDataPreload {
   GetChapterPagesModel? chapterUrlModel;
   int? pageIndex;
   Uint8List? cropImage;
+  Uint8List? upscaledImage;
   bool isTransitionPage;
   Chapter? nextChapter;
   String? mangaName;
@@ -2530,6 +2593,7 @@ class UChapDataPreload {
     this.chapterUrlModel,
     this.pageIndex, {
     this.cropImage,
+    this.upscaledImage,
     this.isTransitionPage = false,
     this.nextChapter,
     this.mangaName,
@@ -2550,7 +2614,8 @@ class UChapDataPreload {
        archiveImage = null,
        index = null,
        chapterUrlModel = null,
-       cropImage = null;
+       cropImage = null,
+       upscaledImage = null;
 }
 
 class CustomPopupMenuButton<T> extends StatelessWidget {

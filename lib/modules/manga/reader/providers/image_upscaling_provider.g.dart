@@ -1,12 +1,12 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'crop_borders_provider.dart';
+part of 'image_upscaling_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$cropBordersHash() => r'cea9b2bff19ba7cffb9b481a77c58cf7e6d2aff3';
+String _$upscaleImageHash() => r'645ad3d826af5e9bdba3561091df7ccc54396372';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -29,33 +29,33 @@ class _SystemHash {
   }
 }
 
-/// See also [cropBorders].
-@ProviderFor(cropBorders)
-const cropBordersProvider = CropBordersFamily();
+/// See also [upscaleImage].
+@ProviderFor(upscaleImage)
+const upscaleImageProvider = UpscaleImageFamily();
 
-/// See also [cropBorders].
-class CropBordersFamily extends Family<AsyncValue<Uint8List?>> {
-  /// See also [cropBorders].
-  const CropBordersFamily();
+/// See also [upscaleImage].
+class UpscaleImageFamily extends Family<AsyncValue<Uint8List?>> {
+  /// See also [upscaleImage].
+  const UpscaleImageFamily();
 
-  /// See also [cropBorders].
-  CropBordersProvider call({
+  /// See also [upscaleImage].
+  UpscaleImageProvider call({
     required UChapDataPreload data,
-    required bool cropBorder,
+    required bool upscale,
   }) {
-    return CropBordersProvider(
+    return UpscaleImageProvider(
       data: data,
-      cropBorder: cropBorder,
+      upscale: upscale,
     );
   }
 
   @override
-  CropBordersProvider getProviderOverride(
-    covariant CropBordersProvider provider,
+  UpscaleImageProvider getProviderOverride(
+    covariant UpscaleImageProvider provider,
   ) {
     return call(
       data: provider.data,
-      cropBorder: provider.cropBorder,
+      upscale: provider.upscale,
     );
   }
 
@@ -71,35 +71,35 @@ class CropBordersFamily extends Family<AsyncValue<Uint8List?>> {
       _allTransitiveDependencies;
 
   @override
-  String? get name => r'cropBordersProvider';
+  String? get name => r'upscaleImageProvider';
 }
 
-/// See also [cropBorders].
-class CropBordersProvider extends FutureProvider<Uint8List?> {
-  /// See also [cropBorders].
-  CropBordersProvider({
+/// See also [upscaleImage].
+class UpscaleImageProvider extends FutureProvider<Uint8List?> {
+  /// See also [upscaleImage].
+  UpscaleImageProvider({
     required UChapDataPreload data,
-    required bool cropBorder,
+    required bool upscale,
   }) : this._internal(
-          (ref) => cropBorders(
-            ref as CropBordersRef,
+          (ref) => upscaleImage(
+            ref as UpscaleImageRef,
             data: data,
-            cropBorder: cropBorder,
+            upscale: upscale,
           ),
-          from: cropBordersProvider,
-          name: r'cropBordersProvider',
+          from: upscaleImageProvider,
+          name: r'upscaleImageProvider',
           debugGetCreateSourceHash:
               const bool.fromEnvironment('dart.vm.product')
                   ? null
-                  : _$cropBordersHash,
-          dependencies: CropBordersFamily._dependencies,
+                  : _$upscaleImageHash,
+          dependencies: UpscaleImageFamily._dependencies,
           allTransitiveDependencies:
-              CropBordersFamily._allTransitiveDependencies,
+              UpscaleImageFamily._allTransitiveDependencies,
           data: data,
-          cropBorder: cropBorder,
+          upscale: upscale,
         );
 
-  CropBordersProvider._internal(
+  UpscaleImageProvider._internal(
     super._createNotifier, {
     required super.name,
     required super.dependencies,
@@ -107,48 +107,48 @@ class CropBordersProvider extends FutureProvider<Uint8List?> {
     required super.debugGetCreateSourceHash,
     required super.from,
     required this.data,
-    required this.cropBorder,
+    required this.upscale,
   }) : super.internal();
 
   final UChapDataPreload data;
-  final bool cropBorder;
+  final bool upscale;
 
   @override
   Override overrideWith(
-    FutureOr<Uint8List?> Function(CropBordersRef provider) create,
+    FutureOr<Uint8List?> Function(UpscaleImageRef provider) create,
   ) {
     return ProviderOverride(
       origin: this,
-      override: CropBordersProvider._internal(
-        (ref) => create(ref as CropBordersRef),
+      override: UpscaleImageProvider._internal(
+        (ref) => create(ref as UpscaleImageRef),
         from: from,
         name: null,
         dependencies: null,
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
         data: data,
-        cropBorder: cropBorder,
+        upscale: upscale,
       ),
     );
   }
 
   @override
   FutureProviderElement<Uint8List?> createElement() {
-    return _CropBordersProviderElement(this);
+    return _UpscaleImageProviderElement(this);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is CropBordersProvider &&
+    return other is UpscaleImageProvider &&
         other.data == data &&
-        other.cropBorder == cropBorder;
+        other.upscale == upscale;
   }
 
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
     hash = _SystemHash.combine(hash, data.hashCode);
-    hash = _SystemHash.combine(hash, cropBorder.hashCode);
+    hash = _SystemHash.combine(hash, upscale.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -156,22 +156,22 @@ class CropBordersProvider extends FutureProvider<Uint8List?> {
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin CropBordersRef on FutureProviderRef<Uint8List?> {
+mixin UpscaleImageRef on FutureProviderRef<Uint8List?> {
   /// The parameter `data` of this provider.
   UChapDataPreload get data;
 
-  /// The parameter `cropBorder` of this provider.
-  bool get cropBorder;
+  /// The parameter `upscale` of this provider.
+  bool get upscale;
 }
 
-class _CropBordersProviderElement extends FutureProviderElement<Uint8List?>
-    with CropBordersRef {
-  _CropBordersProviderElement(super.provider);
+class _UpscaleImageProviderElement extends FutureProviderElement<Uint8List?>
+    with UpscaleImageRef {
+  _UpscaleImageProviderElement(super.provider);
 
   @override
-  UChapDataPreload get data => (origin as CropBordersProvider).data;
+  UChapDataPreload get data => (origin as UpscaleImageProvider).data;
   @override
-  bool get cropBorder => (origin as CropBordersProvider).cropBorder;
+  bool get upscale => (origin as UpscaleImageProvider).upscale;
 }
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -98,6 +98,7 @@ dependencies:
     git:
       url: https://github.com/Schnitzel5/flutter-discord-rpc.git
       ref: main
+  onnxruntime: ^1.4.1
 
 dependency_overrides:
   ffi: ^2.1.3

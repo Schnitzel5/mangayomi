@@ -84,6 +84,26 @@ class CropBordersState extends _$CropBordersState {
 }
 
 @riverpod
+class UpscaleImagesState extends _$UpscaleImagesState {
+  @override
+  bool build() {
+    return isar.settings.getSync(227)!.upscaleImages ?? false;
+  }
+
+  void set(bool value) {
+    final settings = isar.settings.getSync(227);
+    state = value;
+    isar.writeTxnSync(
+      () => isar.settings.putSync(
+        settings!
+          ..upscaleImages = value
+          ..updatedAt = DateTime.now().millisecondsSinceEpoch,
+      ),
+    );
+  }
+}
+
+@riverpod
 class ScaleTypeState extends _$ScaleTypeState {
   @override
   ScaleType build() {

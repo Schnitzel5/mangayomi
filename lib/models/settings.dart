@@ -96,6 +96,8 @@ class Settings {
 
   bool? cropBorders;
 
+  bool? upscaleImages;
+
   L10nLocale? locale;
 
   L10nLocale? defaultSubtitleLang;
@@ -297,6 +299,7 @@ class Settings {
     this.concurrentDownloads = 2,
     this.downloadLocation = "",
     this.cropBorders = false,
+    this.upscaleImages = false,
     this.libraryLocalSource,
     this.autoExtensionsUpdates = false,
     this.animeDisplayType = DisplayType.compactGrid,
@@ -425,6 +428,7 @@ class Settings {
           .toList();
     }
     cropBorders = json['cropBorders'];
+    upscaleImages = json['upscaleImages'];
     dateFormat = json['dateFormat'];
     defaultReaderMode = ReaderMode
         .values[json['defaultReaderMode'] ?? ReaderMode.vertical.index];
@@ -626,6 +630,7 @@ class Settings {
     'checkForExtensionUpdates': checkForExtensionUpdates,
     'cookiesList': cookiesList,
     'cropBorders': cropBorders,
+    'upscaleImages': upscaleImages,
     'dateFormat': dateFormat,
     'defaultReaderMode': defaultReaderMode.index,
     'displayType': displayType.index,

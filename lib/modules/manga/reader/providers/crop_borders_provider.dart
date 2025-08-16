@@ -18,7 +18,7 @@ Future<Uint8List?> cropBorders(
   Uint8List? imageBytes;
 
   if (cropBorder) {
-    imageBytes = await data.getImageBytes;
+    imageBytes = data.upscaledImage ?? await data.getImageBytes;
 
     if (imageBytes == null) {
       return null;
