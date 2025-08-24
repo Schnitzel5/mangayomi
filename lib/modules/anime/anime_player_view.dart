@@ -297,6 +297,8 @@ class _AnimeStreamPageState extends riv.ConsumerState<AnimeStreamPage>
   double _subSpeed = 1;
   final _subSpeedController = TextEditingController(text: "1");
   int lastRpcTimestampUpdate = DateTime.now().millisecondsSinceEpoch;
+  bool _useAirplay = false;
+  String? _airPlayTrack;
 
   late final StreamSubscription<Duration> _currentPositionSub;
 
@@ -904,6 +906,7 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
   }
 
   Future<void> _openMedia(VideoPrefs prefs, [Duration? position]) {
+    _airPlayTrack = prefs.videoTrack?.id;
     return _player.open(
       Media(
         prefs.videoTrack!.id,
@@ -1074,6 +1077,7 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
               _player.stop();
               if (quality.isLocal) {
                 if (widget.isLocal) {
+                  _airPlayTrack = quality.videoTrack?.id;
                   _player.setVideoTrack(quality.videoTrack!);
                 } else {
                   _openMedia(quality);
@@ -1981,52 +1985,56 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
     final enableAutoSkip = ref.read(enableAutoSkipStateProvider);
     final aniSkipTimeoutLength = ref.read(aniSkipTimeoutLengthStateProvider);
     final skipIntroLength = ref.read(defaultSkipIntroLengthStateProvider);
+    botToast("Airplay: $_airPlayTrack");
     return Stack(
       children: [
-        Video(
-          subtitleViewConfiguration: SubtitleViewConfiguration(
-            visible: false,
-            style: subtileTextStyle(ref),
-          ),
-          fit: fit,
-          key: _key,
-          controls: (state) => _isDesktop
-              ? DesktopControllerWidget(
-                  videoController: _controller,
-                  topButtonBarWidget: _topButtonBar(context),
-                  videoStatekey: _key,
-                  bottomButtonBarWidget: _desktopBottomButtonBar(context),
-                  streamController: _streamController,
-                  seekToWidget: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    child: Row(children: [_seekToWidget()]),
+        if (_useAirplay && _airPlayTrack != null)
+          FlutterAVPlayerView(urlString: _airPlayTrack!),
+        if (!_useAirplay)
+          Video(
+            subtitleViewConfiguration: SubtitleViewConfiguration(
+              visible: false,
+              style: subtileTextStyle(ref),
+            ),
+            fit: fit,
+            key: _key,
+            controls: (state) => _isDesktop
+                ? DesktopControllerWidget(
+                    videoController: _controller,
+                    topButtonBarWidget: _topButtonBar(context),
+                    videoStatekey: _key,
+                    bottomButtonBarWidget: _desktopBottomButtonBar(context),
+                    streamController: _streamController,
+                    seekToWidget: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
+                      child: Row(children: [_seekToWidget()]),
+                    ),
+                    tempDuration: (value) {
+                      _tempPosition.value = value;
+                    },
+                    doubleSpeed: (value) {
+                      _isDoubleSpeed.value = value ?? false;
+                    },
+                    defaultSkipIntroLength: skipIntroLength,
+                    desktopFullScreenPlayer: widget.desktopFullScreenPlayer,
+                    chapterMarks: _chapterMarks,
+                  )
+                : MobileControllerWidget(
+                    videoController: _controller,
+                    topButtonBarWidget: _topButtonBar(context),
+                    videoStatekey: _key,
+                    bottomButtonBarWidget: _mobileBottomButtonBar(context),
+                    streamController: _streamController,
+                    doubleSpeed: (value) {
+                      _isDoubleSpeed.value = value ?? false;
+                    },
+                    chapterMarks: _chapterMarks,
                   ),
-                  tempDuration: (value) {
-                    _tempPosition.value = value;
-                  },
-                  doubleSpeed: (value) {
-                    _isDoubleSpeed.value = value ?? false;
-                  },
-                  defaultSkipIntroLength: skipIntroLength,
-                  desktopFullScreenPlayer: widget.desktopFullScreenPlayer,
-                  chapterMarks: _chapterMarks,
-                )
-              : MobileControllerWidget(
-                  videoController: _controller,
-                  topButtonBarWidget: _topButtonBar(context),
-                  videoStatekey: _key,
-                  bottomButtonBarWidget: _mobileBottomButtonBar(context),
-                  streamController: _streamController,
-                  doubleSpeed: (value) {
-                    _isDoubleSpeed.value = value ?? false;
-                  },
-                  chapterMarks: _chapterMarks,
-                ),
-          controller: _controller,
-          width: context.width(1),
-          height: context.height(1),
-          resumeUponEnteringForegroundMode: true,
-        ),
+            controller: _controller,
+            width: context.width(1),
+            height: context.height(1),
+            resumeUponEnteringForegroundMode: true,
+          ),
         Stack(
           alignment: AlignmentDirectional.center,
           children: [
@@ -2107,6 +2115,11 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
               tintColor: Colors.white,
               activeTintColor: Colors.white,
               backgroundColor: Colors.transparent,
+              onClosePickerView: () {
+                setState(() {
+                  _useAirplay = !_useAirplay;
+                });
+              },
             );
           },
         );
