@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_qjs/quickjs/ffi.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riv;
+import 'package:flutter_to_airplay/flutter_to_airplay.dart';
 import 'package:mangayomi/eval/model/m_bridge.dart';
 import 'package:mangayomi/main.dart';
 import 'package:mangayomi/models/chapter.dart';
@@ -1934,6 +1935,17 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
                 },
                 iconColor: Colors.white,
               ),
+              if (Platform.isIOS)
+                btnToShowAirplay(
+                  widget.episode,
+                  onChanged: (v) {
+                    if (v) {
+                      _player.play();
+                    } else {
+                      _player.pause();
+                    }
+                  },
+                ),
               btnToShowShareScreenshot(
                 widget.episode,
                 onChanged: (v) {
@@ -2080,6 +2092,27 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
             ),
           ),
       ],
+    );
+  }
+
+  Widget btnToShowAirplay(Chapter episode, {void Function(bool)? onChanged}) {
+    return IconButton(
+      onPressed: () async {
+        onChanged?.call(false);
+        await showModalBottomSheet(
+          context: context,
+          constraints: BoxConstraints(maxWidth: context.width(1)),
+          builder: (context) {
+            return AirPlayRoutePickerView(
+              tintColor: Colors.white,
+              activeTintColor: Colors.white,
+              backgroundColor: Colors.transparent,
+            );
+          },
+        );
+        onChanged?.call(true);
+      },
+      icon: Icon(Icons.cast_outlined, color: Colors.white),
     );
   }
 
