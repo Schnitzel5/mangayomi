@@ -73,6 +73,23 @@ final cropBordersStateProvider =
     );
 
 typedef _$CropBordersState = AutoDisposeNotifier<bool>;
+String _$colorizeImagesStateHash() =>
+    r'b5087ae80dd5eca7eec73d8a6e67b94148e0d0dd';
+
+/// See also [ColorizeImagesState].
+@ProviderFor(ColorizeImagesState)
+final colorizeImagesStateProvider =
+    AutoDisposeNotifierProvider<ColorizeImagesState, bool>.internal(
+      ColorizeImagesState.new,
+      name: r'colorizeImagesStateProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$colorizeImagesStateHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$ColorizeImagesState = AutoDisposeNotifier<bool>;
 String _$scaleTypeStateHash() => r'07f29cba7193242795134b6d37bb393210a191a1';
 
 /// See also [ScaleTypeState].

@@ -1,12 +1,13 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'crop_borders_provider.dart';
+part of 'colorize_image_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$cropBordersHash() => r'ea8f2a885c8167f89e5b05bb022992cb2ff638a7';
+String _$processColorizeImageHash() =>
+    r'521c020db731136102a83c224e1f24f8e4e45d9a';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -29,28 +30,28 @@ class _SystemHash {
   }
 }
 
-/// See also [cropBorders].
-@ProviderFor(cropBorders)
-const cropBordersProvider = CropBordersFamily();
+/// See also [processColorizeImage].
+@ProviderFor(processColorizeImage)
+const processColorizeImageProvider = ProcessColorizeImageFamily();
 
-/// See also [cropBorders].
-class CropBordersFamily extends Family<AsyncValue<Uint8List?>> {
-  /// See also [cropBorders].
-  const CropBordersFamily();
+/// See also [processColorizeImage].
+class ProcessColorizeImageFamily extends Family<AsyncValue<Uint8List?>> {
+  /// See also [processColorizeImage].
+  const ProcessColorizeImageFamily();
 
-  /// See also [cropBorders].
-  CropBordersProvider call({
+  /// See also [processColorizeImage].
+  ProcessColorizeImageProvider call({
     required UChapDataPreload data,
-    required bool cropBorder,
+    required bool colorize,
   }) {
-    return CropBordersProvider(data: data, cropBorder: cropBorder);
+    return ProcessColorizeImageProvider(data: data, colorize: colorize);
   }
 
   @override
-  CropBordersProvider getProviderOverride(
-    covariant CropBordersProvider provider,
+  ProcessColorizeImageProvider getProviderOverride(
+    covariant ProcessColorizeImageProvider provider,
   ) {
-    return call(data: provider.data, cropBorder: provider.cropBorder);
+    return call(data: provider.data, colorize: provider.colorize);
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -65,34 +66,34 @@ class CropBordersFamily extends Family<AsyncValue<Uint8List?>> {
       _allTransitiveDependencies;
 
   @override
-  String? get name => r'cropBordersProvider';
+  String? get name => r'processColorizeImageProvider';
 }
 
-/// See also [cropBorders].
-class CropBordersProvider extends FutureProvider<Uint8List?> {
-  /// See also [cropBorders].
-  CropBordersProvider({
+/// See also [processColorizeImage].
+class ProcessColorizeImageProvider extends FutureProvider<Uint8List?> {
+  /// See also [processColorizeImage].
+  ProcessColorizeImageProvider({
     required UChapDataPreload data,
-    required bool cropBorder,
+    required bool colorize,
   }) : this._internal(
-         (ref) => cropBorders(
-           ref as CropBordersRef,
+         (ref) => processColorizeImage(
+           ref as ProcessColorizeImageRef,
            data: data,
-           cropBorder: cropBorder,
+           colorize: colorize,
          ),
-         from: cropBordersProvider,
-         name: r'cropBordersProvider',
+         from: processColorizeImageProvider,
+         name: r'processColorizeImageProvider',
          debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
              ? null
-             : _$cropBordersHash,
-         dependencies: CropBordersFamily._dependencies,
+             : _$processColorizeImageHash,
+         dependencies: ProcessColorizeImageFamily._dependencies,
          allTransitiveDependencies:
-             CropBordersFamily._allTransitiveDependencies,
+             ProcessColorizeImageFamily._allTransitiveDependencies,
          data: data,
-         cropBorder: cropBorder,
+         colorize: colorize,
        );
 
-  CropBordersProvider._internal(
+  ProcessColorizeImageProvider._internal(
     super._createNotifier, {
     required super.name,
     required super.dependencies,
@@ -100,48 +101,48 @@ class CropBordersProvider extends FutureProvider<Uint8List?> {
     required super.debugGetCreateSourceHash,
     required super.from,
     required this.data,
-    required this.cropBorder,
+    required this.colorize,
   }) : super.internal();
 
   final UChapDataPreload data;
-  final bool cropBorder;
+  final bool colorize;
 
   @override
   Override overrideWith(
-    FutureOr<Uint8List?> Function(CropBordersRef provider) create,
+    FutureOr<Uint8List?> Function(ProcessColorizeImageRef provider) create,
   ) {
     return ProviderOverride(
       origin: this,
-      override: CropBordersProvider._internal(
-        (ref) => create(ref as CropBordersRef),
+      override: ProcessColorizeImageProvider._internal(
+        (ref) => create(ref as ProcessColorizeImageRef),
         from: from,
         name: null,
         dependencies: null,
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
         data: data,
-        cropBorder: cropBorder,
+        colorize: colorize,
       ),
     );
   }
 
   @override
   FutureProviderElement<Uint8List?> createElement() {
-    return _CropBordersProviderElement(this);
+    return _ProcessColorizeImageProviderElement(this);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is CropBordersProvider &&
+    return other is ProcessColorizeImageProvider &&
         other.data == data &&
-        other.cropBorder == cropBorder;
+        other.colorize == colorize;
   }
 
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
     hash = _SystemHash.combine(hash, data.hashCode);
-    hash = _SystemHash.combine(hash, cropBorder.hashCode);
+    hash = _SystemHash.combine(hash, colorize.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -149,22 +150,23 @@ class CropBordersProvider extends FutureProvider<Uint8List?> {
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin CropBordersRef on FutureProviderRef<Uint8List?> {
+mixin ProcessColorizeImageRef on FutureProviderRef<Uint8List?> {
   /// The parameter `data` of this provider.
   UChapDataPreload get data;
 
-  /// The parameter `cropBorder` of this provider.
-  bool get cropBorder;
+  /// The parameter `colorize` of this provider.
+  bool get colorize;
 }
 
-class _CropBordersProviderElement extends FutureProviderElement<Uint8List?>
-    with CropBordersRef {
-  _CropBordersProviderElement(super.provider);
+class _ProcessColorizeImageProviderElement
+    extends FutureProviderElement<Uint8List?>
+    with ProcessColorizeImageRef {
+  _ProcessColorizeImageProviderElement(super.provider);
 
   @override
-  UChapDataPreload get data => (origin as CropBordersProvider).data;
+  UChapDataPreload get data => (origin as ProcessColorizeImageProvider).data;
   @override
-  bool get cropBorder => (origin as CropBordersProvider).cropBorder;
+  bool get colorize => (origin as ProcessColorizeImageProvider).colorize;
 }
 
 // ignore_for_file: type=lint

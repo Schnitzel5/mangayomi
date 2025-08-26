@@ -95,8 +95,10 @@ extension UChapDataPreloadExtensions on UChapDataPreload {
     final isLocale = data.isLocale!;
     final archiveImage = data.archiveImage;
     final cropBorders = ref.watch(cropBordersStateProvider);
-    return cropBorders && data.cropImage != null
-        ? ExtendedMemoryImageProvider(data.cropImage!)
+    final colorizeImages = ref.watch(colorizeImagesStateProvider);
+    return (cropBorders && data.cropImage != null) ||
+            (colorizeImages && data.colorizedImage != null)
+        ? ExtendedMemoryImageProvider(data.cropImage ?? data.colorizedImage!)
         : (isLocale
                   ? archiveImage != null
                         ? ExtendedMemoryImageProvider(archiveImage)

@@ -14,6 +14,7 @@ import 'package:mangayomi/models/chapter.dart';
 import 'package:mangayomi/models/manga.dart';
 import 'package:mangayomi/models/settings.dart';
 import 'package:mangayomi/modules/anime/widgets/desktop.dart';
+import 'package:mangayomi/modules/manga/reader/providers/colorize_image_provider.dart';
 import 'package:mangayomi/modules/manga/reader/providers/crop_borders_provider.dart';
 import 'package:mangayomi/modules/manga/reader/u_chap_data_preload.dart';
 import 'package:mangayomi/modules/manga/reader/widgets/btn_chapter_list_dialog.dart';
@@ -240,6 +241,7 @@ class _MangaChapterPageGalleryState
   final PhotoViewController _photoViewController = PhotoViewController();
   final PhotoViewScaleStateController _photoViewScaleStateController =
       PhotoViewScaleStateController();
+  final List<int> _colorizeImageCheckList = [];
   final List<int> _cropBorderCheckList = [];
 
   void _onScaleEnd(
@@ -439,9 +441,13 @@ class _MangaChapterPageGalleryState
   Widget build(BuildContext context) {
     final backgroundColor = ref.watch(backgroundColorStateProvider);
     final fullScreenReader = ref.watch(fullScreenReaderStateProvider);
+    final colorizeImages = ref.watch(colorizeImagesStateProvider);
     final cropBorders = ref.watch(cropBordersStateProvider);
     final bool isHorizontalContinuaous =
         ref.watch(_currentReaderMode) == ReaderMode.horizontalContinuous;
+    if (colorizeImages) {
+      _processColorizeImages();
+    }
     if (cropBorders) {
       _processCropBorders();
     }
@@ -1133,6 +1139,10 @@ class _MangaChapterPageGalleryState
   }
 
   void _onPageChanged(int index) {
+    final colorizeImages = ref.watch(colorizeImagesStateProvider);
+    if (colorizeImages) {
+      _processColorizeImagesByIndex(index);
+    }
     final cropBorders = ref.watch(cropBordersStateProvider);
     if (cropBorders) {
       _processCropBordersByIndex(index);
@@ -1399,6 +1409,48 @@ class _MangaChapterPageGalleryState
             )
             .then((value) {
               _uChapDataPreload[i] = _uChapDataPreload[i]..cropImage = value;
+              if (mounted) {
+                setState(() {});
+              }
+            });
+      }
+    }
+  }
+
+  void _processColorizeImagesByIndex(int index) async {
+    if (!_colorizeImageCheckList.contains(index)) {
+      _colorizeImageCheckList.add(index);
+      ref
+          .watch(
+            processColorizeImageProvider(
+              data: _uChapDataPreload[index],
+              colorize: true,
+            ).future,
+          )
+          .then((value) {
+            _uChapDataPreload[index] = _uChapDataPreload[index]
+              ..colorizedImage = value;
+          });
+      if (mounted) {
+        setState(() {});
+      }
+    }
+  }
+
+  void _processColorizeImages() async {
+    for (var i = 0; i < _uChapDataPreload.length; i++) {
+      if (!_colorizeImageCheckList.contains(i)) {
+        _colorizeImageCheckList.add(i);
+        ref
+            .watch(
+              processColorizeImageProvider(
+                data: _uChapDataPreload[i],
+                colorize: true,
+              ).future,
+            )
+            .then((value) {
+              _uChapDataPreload[i] = _uChapDataPreload[i]
+                ..colorizedImage = value;
               if (mounted) {
                 setState(() {});
               }
@@ -1850,6 +1902,42 @@ class _MangaChapterPageGalleryState
                             children: [
                               const Icon(Icons.crop_rounded),
                               if (!cropBorders)
+                                Positioned(
+                                  right: 8,
+                                  child: Transform.scale(
+                                    scaleX: 2.5,
+                                    child: const Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          '\\',
+                                          style: TextStyle(fontSize: 17),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final colorizeImages = ref.watch(
+                          colorizeImagesStateProvider,
+                        );
+                        return IconButton(
+                          onPressed: () {
+                            ref
+                                .read(colorizeImagesStateProvider.notifier)
+                                .set(!colorizeImages);
+                          },
+                          icon: Stack(
+                            children: [
+                              const Icon(Icons.color_lens),
+                              if (!colorizeImages)
                                 Positioned(
                                   right: 8,
                                   child: Transform.scale(

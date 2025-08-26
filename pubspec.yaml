@@ -71,7 +71,7 @@ dependencies:
   re_highlight: ^0.0.3
   json_view: ^0.4.2
   super_sliver_list: ^0.4.1
-  flutter_rust_bridge: 2.10.0
+  flutter_rust_bridge: 2.11.1
   rust_lib_mangayomi:
     path: rust_builder
   pseudom: ^1.0.1

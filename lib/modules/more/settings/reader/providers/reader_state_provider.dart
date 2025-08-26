@@ -84,6 +84,26 @@ class CropBordersState extends _$CropBordersState {
 }
 
 @riverpod
+class ColorizeImagesState extends _$ColorizeImagesState {
+  @override
+  bool build() {
+    return isar.settings.getSync(227)!.colorizeImages ?? false;
+  }
+
+  void set(bool value) {
+    final settings = isar.settings.getSync(227);
+    state = value;
+    isar.writeTxnSync(
+      () => isar.settings.putSync(
+        settings!
+          ..colorizeImages = value
+          ..updatedAt = DateTime.now().millisecondsSinceEpoch,
+      ),
+    );
+  }
+}
+
+@riverpod
 class ScaleTypeState extends _$ScaleTypeState {
   @override
   ScaleType build() {

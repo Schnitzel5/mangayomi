@@ -15,6 +15,7 @@ class UChapDataPreload {
   GetChapterPagesModel? chapterUrlModel;
   int? pageIndex;
   Uint8List? cropImage;
+  Uint8List? colorizedImage;
   bool isTransitionPage;
   Chapter? nextChapter;
   String? mangaName;
@@ -30,6 +31,7 @@ class UChapDataPreload {
     this.chapterUrlModel,
     this.pageIndex, {
     this.cropImage,
+    this.colorizedImage,
     this.isTransitionPage = false,
     this.nextChapter,
     this.mangaName,
@@ -50,5 +52,6 @@ class UChapDataPreload {
        archiveImage = null,
        index = null,
        chapterUrlModel = null,
-       cropImage = null;
+       cropImage = null,
+       colorizedImage = null;
 }
