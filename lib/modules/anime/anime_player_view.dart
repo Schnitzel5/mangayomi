@@ -1,3 +1,4 @@
+import 'package:pip/pip.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
@@ -254,6 +255,7 @@ class _AnimeStreamPageState extends riv.ConsumerState<AnimeStreamPage>
       eventHandler: _handleMpvEvents,
     ),
   );
+  late final Pip _pip;
   late final hwdecMode = ref.read(hwdecModeStateProvider());
   late final enableHardwareAccel = ref.read(enableHardwareAccelStateProvider);
   late final VideoController _controller;
@@ -823,8 +825,8 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
         ..value = speed < 0.1
             ? 0.1
             : speed > 10
-            ? 10
-            : speed;
+                ? 10
+                : speed;
       nativePlayer.mpv.mpv_set_property(
         nativePlayer.ctx,
         namePtr.cast(),
@@ -904,6 +906,9 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       _setCurrentPosition(true);
+      if (Platform.isAndroid || Platform.isIOS) {
+        _pip.start();
+      }
     }
   }
 
@@ -979,6 +984,9 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
     _fit.dispose();
     if (!_isDesktop) {
       _setLandscapeMode(false);
+    }
+    if (Platform.isAndroid || Platform.isIOS) {
+      _pip.dispose();
     }
     _skipPhase.dispose();
     discordRpc?.showIdleText();
@@ -1804,6 +1812,14 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
                         fontWeight: _selectedShader.value == mode.$1
                             ? FontWeight.w900
                             : FontWeight.normal,
+        IconButton(
+          icon: const Icon(Icons.picture_in_picture, color: Colors.white),
+          onPressed: () async {
+            if (Platform.isAndroid || Platform.isIOS) {
+              await _pip.start();
+            }
+          },
+        ),
                       ),
                     ),
                     onTap: () {
