@@ -1,4 +1,3 @@
-import 'package:pip/pip.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
@@ -255,8 +254,6 @@ class _AnimeStreamPageState extends riv.ConsumerState<AnimeStreamPage>
       eventHandler: _handleMpvEvents,
     ),
   );
-  late final Pip _pip = Pip();
-  bool isPipSupported = false;
   late final hwdecMode = ref.read(hwdecModeStateProvider());
   late final enableHardwareAccel = ref.read(enableHardwareAccelStateProvider);
   late final VideoController _controller;
@@ -333,23 +330,29 @@ class _AnimeStreamPageState extends riv.ConsumerState<AnimeStreamPage>
       });
 
   Future<void> _handleMpvEvents(Pointer<generated.mpv_event> event) async {
-    if (event.ref.event_id ==
-        generated.mpv_event_id.MPV_EVENT_PROPERTY_CHANGE) {
-      final prop = event.ref.data.cast<generated.mpv_event_property>();
-      final propName = prop.ref.name.cast<Utf8>().toDartString();
-      if (kDebugMode) {
-        if (propName.startsWith("user-data/")) {
-          print("DEBUG 00: $propName - ${prop.ref.format}");
+    try {
+      if (event.ref.event_id ==
+          generated.mpv_event_id.MPV_EVENT_PROPERTY_CHANGE) {
+        final prop = event.ref.data.cast<generated.mpv_event_property>();
+        final propName = prop.ref.name.cast<Utf8>().toDartString();
+        if (kDebugMode) {
+          if (propName.startsWith("user-data/")) {
+            print("DEBUG 00: $propName - ${prop.ref.format}");
+          }
+        }
+        if (propName.startsWith("user-data/") &&
+            prop.ref.format == generated.mpv_format.MPV_FORMAT_NODE) {
+          final value = prop.ref.data.cast<generated.mpv_node>();
+          _handleMpvNodeEvents(propName, value);
+        } else if (propName.startsWith("user-data/") &&
+            prop.ref.format == generated.mpv_format.MPV_FORMAT_INT64) {
+          final value = prop.ref.data.cast<Int64>().value;
+          _handleMpvNumberEvents(propName, value);
         }
       }
-      if (propName.startsWith("user-data/") &&
-          prop.ref.format == generated.mpv_format.MPV_FORMAT_NODE) {
-        final value = prop.ref.data.cast<generated.mpv_node>();
-        _handleMpvNodeEvents(propName, value);
-      } else if (propName.startsWith("user-data/") &&
-          prop.ref.format == generated.mpv_format.MPV_FORMAT_INT64) {
-        final value = prop.ref.data.cast<Int64>().value;
-        _handleMpvNumberEvents(propName, value);
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint(e.toString());
       }
     }
   }
@@ -736,25 +739,29 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
     if (_initSubtitleAndAudio) {
       _initSubtitleAndAudio = false;
       if (_firstVid.subtitles?.isNotEmpty ?? false) {
-        final defaultTrack = _firstVid.subtitles!.firstWhere(
-          (sub) => sub.label == widget.defaultSubtitle,
-          orElse: () => _firstVid.subtitles!.first,
-        );
-        final file = defaultTrack.file ?? "";
-        final label = defaultTrack.label;
-        final track = (file.startsWith("http") || file.startsWith("file"))
-            ? SubtitleTrack.uri(file, title: label, language: label)
-            : SubtitleTrack.data(file, title: label, language: label);
-        _player.setSubtitleTrack(track);
-        if (_firstVid.audios?.isNotEmpty ?? false) {
-          final at = _firstVid.audios!.first;
-          _player.setAudioTrack(
-            AudioTrack.uri(
-              at.file ?? "",
-              title: at.label,
-              language: at.label,
-            ),
+        try {
+          final defaultTrack = _firstVid.subtitles!.firstWhere(
+            (sub) => sub.label == widget.defaultSubtitle,
+            orElse: () => _firstVid.subtitles!.first,
           );
+          final file = defaultTrack.file ?? "";
+          final label = defaultTrack.label;
+          final track = (file.startsWith("http") || file.startsWith("file"))
+              ? SubtitleTrack.uri(file, title: label, language: label)
+              : SubtitleTrack.data(file, title: label, language: label);
+          _player.setSubtitleTrack(track);
+        } catch (_) {}
+        if (_firstVid.audios?.isNotEmpty ?? false) {
+          try {
+            final at = _firstVid.audios!.first;
+            _player.setAudioTrack(
+              AudioTrack.uri(
+                at.file ?? "",
+                title: at.label,
+                language: at.label,
+              ),
+            );
+          } catch (_) {}
         }
       }
     }
@@ -816,8 +823,8 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
         ..value = speed < 0.1
             ? 0.1
             : speed > 10
-                ? 10
-                : speed;
+            ? 10
+            : speed;
       nativePlayer.mpv.mpv_set_property(
         nativePlayer.ctx,
         namePtr.cast(),
@@ -885,7 +892,6 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
       if (ref.read(enableAniSkipStateProvider)) _initAniSkip();
     });
     _initCustomButton();
-    _checkPipSupport();
     discordRpc?.showChapterDetails(ref, widget.episode);
     _currentPosition.addListener(_updateRpcTimestamp);
     _subDelayController.addListener(_onSubDelayChanged);
@@ -898,13 +904,6 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       _setCurrentPosition(true);
-      if (isPipSupported && (Platform.isAndroid || Platform.isIOS)) {
-        _pip.start();
-      }
-    } else if (state == AppLifecycleState.resumed) {
-      if (isPipSupported && (Platform.isAndroid || Platform.isIOS)) {
-        _pip.stop();
-      }
     }
   }
 
@@ -920,23 +919,25 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
 
   Future<void> _loadAndroidFont() async {
     if (Platform.isAndroid && useLibass) {
-      final subDir = await getApplicationDocumentsDirectory();
-      final fontPath = p.join(subDir.path, 'subfont.ttf');
-      final data = await rootBundle.load('assets/fonts/subfont.ttf');
-      final bytes = data.buffer.asInt8List(
-        data.offsetInBytes,
-        data.lengthInBytes,
-      );
-      final fontFile = await File(fontPath).create(recursive: true);
-      await fontFile.writeAsBytes(bytes);
-      await (_player.platform as NativePlayer).setProperty(
-        'sub-fonts-dir',
-        subDir.path,
-      );
-      await (_player.platform as NativePlayer).setProperty(
-        'sub-font',
-        'Droid Sans Fallback',
-      );
+      try {
+        final subDir = await getApplicationDocumentsDirectory();
+        final fontPath = p.join(subDir.path, 'subfont.ttf');
+        final data = await rootBundle.load('assets/fonts/subfont.ttf');
+        final bytes = data.buffer.asInt8List(
+          data.offsetInBytes,
+          data.lengthInBytes,
+        );
+        final fontFile = await File(fontPath).create(recursive: true);
+        await fontFile.writeAsBytes(bytes);
+        await (_player.platform as NativePlayer).setProperty(
+          'sub-fonts-dir',
+          subDir.path,
+        );
+        await (_player.platform as NativePlayer).setProperty(
+          'sub-font',
+          'Droid Sans Fallback',
+        );
+      } catch (_) {}
     }
   }
 
@@ -979,9 +980,6 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
     if (!_isDesktop) {
       _setLandscapeMode(false);
     }
-    if (isPipSupported && (Platform.isAndroid || Platform.isIOS)) {
-      _pip.dispose();
-    }
     _skipPhase.dispose();
     discordRpc?.showIdleText();
     discordRpc?.showOriginalTimestamp();
@@ -1015,43 +1013,6 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
       ]);
     }
   }
-
-  Future<void> _checkPipSupport() async {
-    if (Platform.isAndroid || Platform.isIOS) {
-      isPipSupported = await _pip.isSupported();
-      if (isPipSupported) {
-        await _setupPip();
-      }
-    }
-    setState(() {});
-  }
-
-  Future<void> _setupPip() async {
-    final options = PipOptions(
-      autoEnterEnabled: true,
-      aspectRatioX: 16,
-      aspectRatioY: 9,
-    );
-    await _pip.setup(options);
-    await _pip.registerStateChangedObserver(
-      PipStateChangedObserver(
-        onPipStateChanged: (state, error) {
-          switch (state) {
-            case PipState.pipStateStarted:
-              print('PiP started successfully');
-              break;
-            case PipState.pipStateStopped:
-              print('PiP stopped');
-              break;
-            case PipState.pipStateFailed:
-              print('PiP failed: $error');
-              break;
-          }
-        },
-      ),
-    );
-  }
-
 
   Widget textWidget(String text, bool selected) => Row(
     children: [
@@ -1359,7 +1320,9 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
             return GestureDetector(
               onTap: () {
                 Navigator.pop(context);
-                _player.setSubtitleTrack(sub.subtitle!);
+                try {
+                  _player.setSubtitleTrack(sub.subtitle!);
+                } catch (_) {}
               },
               child: textWidget(title, selected),
             );
@@ -1367,41 +1330,51 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
           const SizedBox(height: 30),
           GestureDetector(
             onTap: () async {
-              FilePickerResult? result = await FilePicker.platform.pickFiles(
-                allowMultiple: false,
-              );
-
-              if (result != null && context.mounted) {
-                _player.setSubtitleTrack(
-                  SubtitleTrack.uri(result.files.first.path!),
+              try {
+                FilePickerResult? result = await FilePicker.platform.pickFiles(
+                  allowMultiple: false,
                 );
+
+                if (result != null && context.mounted) {
+                  _player.setSubtitleTrack(
+                    SubtitleTrack.uri(result.files.first.path!),
+                  );
+                }
+                if (!context.mounted) return;
+                Navigator.pop(context);
+              } catch (_) {
+                botToast("Error");
+                Navigator.pop(context);
               }
-              if (!context.mounted) return;
-              Navigator.pop(context);
             },
             child: textWidget(context.l10n.load_own_subtitles, false),
           ),
           const SizedBox(height: 30),
           GestureDetector(
             onTap: () async {
-              final subtitle =
-                  await subtitlesSearchraggableMenu(
-                        context,
-                        chapter: widget.episode,
-                        isLocal: widget.isLocal,
-                      )
-                      as ImdbSubtitle?;
-              if (subtitle != null && context.mounted) {
-                _player.setSubtitleTrack(
-                  SubtitleTrack.uri(
-                    subtitle.url!,
-                    title: subtitle.language,
-                    language: subtitle.language,
-                  ),
-                );
+              try {
+                final subtitle =
+                    await subtitlesSearchraggableMenu(
+                          context,
+                          chapter: widget.episode,
+                          isLocal: widget.isLocal,
+                        )
+                        as ImdbSubtitle?;
+                if (subtitle != null && context.mounted) {
+                  _player.setSubtitleTrack(
+                    SubtitleTrack.uri(
+                      subtitle.url!,
+                      title: subtitle.language,
+                      language: subtitle.language,
+                    ),
+                  );
+                }
+                if (!context.mounted) return;
+                Navigator.pop(context);
+              } catch (_) {
+                botToast("Error");
+                Navigator.pop(context);
               }
-              if (!context.mounted) return;
-              Navigator.pop(context);
             },
             child: textWidget(context.l10n.search_subtitles, false),
           ),
@@ -1467,7 +1440,9 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
           return GestureDetector(
             onTap: () {
               Navigator.pop(context);
-              _player.setAudioTrack(aud.audio!);
+              try {
+                _player.setAudioTrack(aud.audio!);
+              } catch (_) {}
             },
             child: textWidget(title, selected),
           );
@@ -1841,15 +1816,6 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
                 )
                 .toList(),
       ),
-      if (isPipSupported)
-        IconButton(
-          icon: const Icon(Icons.picture_in_picture, color: Colors.white),
-          onPressed: () async {
-            if (Platform.isAndroid || Platform.isIOS) {
-              await _pip.start();
-            }
-          },
-        ),
       ValueListenableBuilder(
         valueListenable: _customButtons,
         builder: (context, value, child) => value != null
