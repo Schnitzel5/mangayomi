@@ -909,6 +909,10 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
       if (Platform.isAndroid || Platform.isIOS) {
         _pip.start();
       }
+    } else if (state == AppLifecycleState.resumed) {
+      if (Platform.isAndroid || Platform.isIOS) {
+        _pip.stop();
+      }
     }
   }
 

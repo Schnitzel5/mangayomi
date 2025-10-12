@@ -58,6 +58,13 @@
 	<false/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>audio</string>
+		<string>airplay</string>
+		<string>picture-in-picture</string>
+	</array>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UISupportsDocumentBrowser</key>
