@@ -1,9 +1,8 @@
-name: Build & Release
-
 on:
   push:
     tags:
       - v*
+  workflow_dispatch: # will remove when i push to main repogit remote set-url origin https://github.com/686udjie/mangayomi.git
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name }}

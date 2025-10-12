@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:ffi/ffi.dart';
+import 'package:pip/pip.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -271,6 +272,7 @@ class _AnimeStreamPageState extends riv.ConsumerState<AnimeStreamPage>
       headers: _firstVid.headers,
     ),
   );
+  bool isPipSupported = false;
   final ValueNotifier<double> _playbackSpeed = ValueNotifier(1.0);
   final ValueNotifier<bool> _isDoubleSpeed = ValueNotifier(false);
   late final ValueNotifier<Duration> _currentPosition = ValueNotifier(
@@ -286,6 +288,7 @@ class _AnimeStreamPageState extends riv.ConsumerState<AnimeStreamPage>
   final ValueNotifier<String> _selectedShader = ValueNotifier("");
   final ValueNotifier<ActiveCustomButton?> _customButton = ValueNotifier(null);
   final ValueNotifier<List<CustomButton>?> _customButtons = ValueNotifier(null);
+  late final Pip _pip = Pip();
   late final ValueNotifier<_AniSkipPhase> _skipPhase = ValueNotifier(
     _AniSkipPhase.none,
   );
@@ -892,6 +895,7 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
       if (ref.read(enableAniSkipStateProvider)) _initAniSkip();
     });
     _initCustomButton();
+    _checkPipSupport();
     discordRpc?.showChapterDetails(ref, widget.episode);
     _currentPosition.addListener(_updateRpcTimestamp);
     _subDelayController.addListener(_onSubDelayChanged);
@@ -986,6 +990,7 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
     _currentPosition.dispose();
     _subDelayController.dispose();
     _subSpeedController.dispose();
+    Future.microtask(() => _pip.dispose());
     super.dispose();
   }
 
@@ -1011,6 +1016,31 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
         DeviceOrientation.landscapeLeft,
         DeviceOrientation.landscapeRight,
       ]);
+    }
+  }
+
+  Future<void> _checkPipSupport() async {
+    isPipSupported = await _pip.isSupported();
+    if (isPipSupported) {
+      await _setupPip();
+    }
+    setState(() {});
+  }
+
+  Future<void> _setupPip() async {
+    final options = PipOptions(
+      autoEnterEnabled: false,
+      aspectRatioX: 16,
+      aspectRatioY: 9,
+    );
+    await _pip.setup(options);
+  }
+
+  Future<void> _enterPip() async {
+    try {
+      await _pip.start();
+    } catch (e) {
+      // Handle error if needed
     }
   }
 
@@ -1875,6 +1905,11 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
             _changeFitLabel(ref);
           },
         ),
+        if (isPipSupported)
+          IconButton(
+            icon: const Icon(Icons.picture_in_picture, color: Colors.white),
+            onPressed: _enterPip,
+          ),
         if (_isDesktop)
           CustomMaterialDesktopFullscreenButton(
             controller: _controller,
