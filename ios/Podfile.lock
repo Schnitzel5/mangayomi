@@ -42,6 +42,8 @@ PODS:
     - DKImagePickerController/PhotoGallery
     - Flutter
   - Flutter (1.0.0)
+  - flutter_discord_rpc_fork (0.0.1):
+    - Flutter
   - flutter_inappwebview_ios (0.0.1):
     - Flutter
     - flutter_inappwebview_ios/Core (= 0.0.1)
@@ -69,6 +71,8 @@ PODS:
     - Flutter
     - FlutterMacOS
   - permission_handler_apple (9.3.0):
+    - Flutter
+  - pip (0.0.1):
     - Flutter
   - rust_lib_mangayomi (0.0.1):
     - Flutter
@@ -103,6 +107,7 @@ DEPENDENCIES:
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - Flutter (from `Flutter`)
+  - flutter_discord_rpc_fork (from `.symlinks/plugins/flutter_discord_rpc_fork/ios`)
   - flutter_inappwebview_ios (from `.symlinks/plugins/flutter_inappwebview_ios/ios`)
   - flutter_qjs (from `.symlinks/plugins/flutter_qjs/ios`)
   - flutter_web_auth_2 (from `.symlinks/plugins/flutter_web_auth_2/ios`)
@@ -113,6 +118,7 @@ DEPENDENCIES:
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
+  - pip (from `.symlinks/plugins/pip/ios`)
   - rust_lib_mangayomi (from `.symlinks/plugins/rust_lib_mangayomi/ios`)
   - screen_brightness_ios (from `.symlinks/plugins/screen_brightness_ios/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
@@ -144,6 +150,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/file_picker/ios"
   Flutter:
     :path: Flutter
+  flutter_discord_rpc_fork:
+    :path: ".symlinks/plugins/flutter_discord_rpc_fork/ios"
   flutter_inappwebview_ios:
     :path: ".symlinks/plugins/flutter_inappwebview_ios/ios"
   flutter_qjs:
@@ -164,6 +172,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
+  pip:
+    :path: ".symlinks/plugins/pip/ios"
   rust_lib_mangayomi:
     :path: ".symlinks/plugins/rust_lib_mangayomi/ios"
   screen_brightness_ios:
@@ -191,7 +201,8 @@ SPEC CHECKSUMS:
   DKImagePickerController: b512c28220a2b8ac7419f21c491fc8534b7601ac
   DKPhotoGallery: fdfad5125a9fdda9cc57df834d49df790dbb4179
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
-  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  flutter_discord_rpc_fork: 970cf2beca17870caf8645556de01ae2b8587bb6
   flutter_inappwebview_ios: b89ba3482b96fb25e00c967aae065701b66e9b99
   flutter_qjs: 1d5918f42171154e88dd545dd45f126c0291976f
   flutter_web_auth_2: 3464a7c16dc6480b6194fc89913bae6e82f28405
@@ -203,6 +214,7 @@ SPEC CHECKSUMS:
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
+  pip: 6d6bd5ae42bf68b1c34d56dcced0d7c46b683d18
   rust_lib_mangayomi: 360a904274b47351a0f7c26d3ce5aa6392bb8db3
   screen_brightness_ios: 28c5fbdb40634de44f86025d84470158ad4df48c
   SDWebImage: 750adf017a315a280c60fde706ab1e552a3ae4e9
