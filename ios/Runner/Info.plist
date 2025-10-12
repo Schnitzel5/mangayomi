@@ -62,6 +62,7 @@
 	<array>
 		<string>fetch</string>
 		<string>audio</string>
+		<string>background-processing</string>
 	</array>
 	<key>UIFileSharingEnabled</key>
 	<true/>

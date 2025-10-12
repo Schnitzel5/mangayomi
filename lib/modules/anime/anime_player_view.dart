@@ -52,6 +52,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
+import 'package:pip/pip.dart';
 
 import 'widgets/search_subtitles.dart';
 
@@ -205,6 +206,7 @@ class _AnimeStreamPageState extends riv.ConsumerState<AnimeStreamPage>
   );
   late final audioChannel = ref.read(audioChannelStateProvider);
   late final volumeBoostCap = ref.read(volumeBoostCapStateProvider);
+  final _pip = Pip();
   late final Player _player = Player(
     configuration: PlayerConfiguration(
       libass: useLibass,
@@ -837,6 +839,36 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
     }
   }
 
+  void _setupPip() async {
+    try {
+      final isSupported = await _pip.isSupported();
+      if (!isSupported) return;
+
+      if (Platform.isIOS) {
+        final options = PipOptions(
+          autoEnterEnabled: true,
+          contentView: 0, 
+          sourceContentView: 0,
+          preferredContentWidth: 480,
+          preferredContentHeight: 270,
+          controlStyle: 2,
+        );
+        await _pip.setup(options);
+      } else if (Platform.isAndroid) {
+        final options = PipOptions(
+          autoEnterEnabled: true,
+          aspectRatioX: 16,
+          aspectRatioY: 9,
+        );
+        await _pip.setup(options);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error setting up PiP: $e');
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -879,6 +911,9 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
     );
     _completed;
     _currentTotalDurationSub;
+    
+    // Setup PiP
+    _setupPip();
     _loadAndroidFont().then((_) {
       _openMedia(_video.value!, _streamController.geTCurrentPosition());
       if (widget.isTorrent) {
@@ -904,6 +939,20 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       _setCurrentPosition(true);
+    }
+    
+    // Handle PiP for iOS
+    if (Platform.isIOS) {
+      switch (state) {
+        case AppLifecycleState.inactive:
+          _pip.start();
+          break;
+        case AppLifecycleState.resumed:
+          _pip.stop();
+          break;
+        default:
+          break;
+      }
     }
   }
 
@@ -986,6 +1035,10 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
     _currentPosition.dispose();
     _subDelayController.dispose();
     _subSpeedController.dispose();
+    
+    // Cleanup PiP
+    _pip.dispose();
+    
     super.dispose();
   }
 
