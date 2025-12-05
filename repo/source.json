@@ -16,7 +16,7 @@
       "subtitle": "Read manga, novels, and watch anime",
       "version": "0.6.80",
       "versionDate": "2025-11-29T17:29:34Z",
-      "versionDescription": "",
+      "versionDescription": "\u2022 fix video showing blue blank screen\r\n\r\nWhat's Changed\r\n* Fix: Reverse icon for toggling the Extension. by @hndrbrm in https://github.com/kodjodevf/mangayomi/pull/610\r\n* Various fixes by @NBA2K1 in https://github.com/kodjodevf/mangayomi/pull/612\r\n* Fix 613 video player showing blue blank screen\r\n* Fix app crash when watching anime\r\n\r\nNew Contributors\r\n* @hndrbrm made their first contribution in https://github.com/kodjodevf/mangayomi/pull/610\r\n\r\n**Full Changelog**: https://github.com/kodjodevf/mangayomi/compare/v0.6.75...v0.6.80",
       "downloadURL": "https://github.com/kodjodevf/mangayomi/releases/download/v0.6.80/Mangayomi-v0.6.80-ios.ipa",
       "localizedDescription": "Mangayomi is an open-source Flutter app for reading manga, novels, and watching anime across multiple platforms.",
       "iconURL": "https://raw.githubusercontent.com/kodjodevf/mangayomi/refs/heads/main/repo/images/icons/icon_default.webp",
@@ -32,7 +32,7 @@
         {
           "version": "0.6.80",
           "date": "2025-11-29T17:29:34Z",
-          "localizedDescription": "",
+          "localizedDescription": "\u2022 fix video showing blue blank screen\r\n\r\nWhat's Changed\r\n* Fix: Reverse icon for toggling the Extension. by @hndrbrm in https://github.com/kodjodevf/mangayomi/pull/610\r\n* Various fixes by @NBA2K1 in https://github.com/kodjodevf/mangayomi/pull/612\r\n* Fix 613 video player showing blue blank screen\r\n* Fix app crash when watching anime\r\n\r\nNew Contributors\r\n* @hndrbrm made their first contribution in https://github.com/kodjodevf/mangayomi/pull/610\r\n\r\n**Full Changelog**: https://github.com/kodjodevf/mangayomi/compare/v0.6.75...v0.6.80",
           "downloadURL": "https://github.com/kodjodevf/mangayomi/releases/download/v0.6.80/Mangayomi-v0.6.80-ios.ipa",
           "size": 44514252
         },
