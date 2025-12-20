@@ -26,7 +26,7 @@ Future<dynamic> updateMangaDetail(
         (manga.chapters.isNotEmpty && isInit)) {
       return;
     }
-    final source = getSource(manga.lang!, manga.source!, manga.sourceId, installedOnly: true);
+    final source = getSource(manga.lang!, manga.source!, manga.sourceId);
     MManga getManga;
 
     getManga = await ref.read(

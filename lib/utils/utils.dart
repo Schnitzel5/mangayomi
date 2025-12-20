@@ -2,18 +2,14 @@ import 'package:isar_community/isar.dart';
 import 'package:mangayomi/main.dart';
 import 'package:mangayomi/models/source.dart';
 
-Source? getSource(
-  String lang,
-  String name,
-  int? sourceId, {
-  bool installedOnly = false,
-}) {
+Source? getSource(String lang, String name, int? sourceId) {
   try {
-    var sourcesFilter = isar.sources.filter().idIsNotNull();
-    if (installedOnly) {
-      sourcesFilter = sourcesFilter.isActiveEqualTo(true).isAddedEqualTo(true);
-    }
-    final sourcesList = sourcesFilter.findAllSync();
+    final sourcesList = isar.sources
+        .filter()
+        .idIsNotNull()
+        .isActiveEqualTo(true)
+        .isAddedEqualTo(true)
+        .findAllSync();
     return sourcesList.firstWhere(
       (element) => sourceId != null
           ? element.id == sourceId && element.sourceCode != null
