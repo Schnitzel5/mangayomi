@@ -163,6 +163,8 @@ class Settings {
 
   bool? fullScreenPlayer;
 
+  bool? forceLandscapePlayer;
+
   bool? updateProgressAfterReading;
 
   bool? enableAniSkip;
@@ -172,6 +174,10 @@ class Settings {
   int? aniSkipTimeoutLength;
 
   String? customDns;
+
+  bool? doHEnabled;
+
+  int? doHProviderId;
 
   String? btServerAddress;
 
@@ -375,11 +381,14 @@ class Settings {
     this.defaultDoubleTapToSkipLength = 10,
     this.defaultPlayBackSpeed = 1.0,
     this.fullScreenPlayer = false,
+    this.forceLandscapePlayer = false,
     this.updateProgressAfterReading = true,
     this.enableAniSkip,
     this.enableAutoSkip,
     this.aniSkipTimeoutLength,
     this.customDns = "",
+    this.doHEnabled = false,
+    this.doHProviderId = 0,
     this.btServerAddress = "127.0.0.1",
     this.btServerPort,
     this.fullScreenReader = true,
@@ -581,11 +590,14 @@ class Settings {
         ? json['defaultPlayBackSpeed']
         : (json['defaultPlayBackSpeed'] as int).toDouble();
     fullScreenPlayer = json['fullScreenPlayer'];
+    forceLandscapePlayer = json['forceLandscapePlayer'];
     updateProgressAfterReading = json['updateProgressAfterReading'];
     enableAniSkip = json['enableAniSkip'];
     enableAutoSkip = json['enableAutoSkip'];
     aniSkipTimeoutLength = json['aniSkipTimeoutLength'];
     customDns = json['customDns'];
+    doHEnabled = json['doHEnabled'];
+    doHProviderId = json['doHProviderId'];
     btServerAddress = json['btServerAddress'];
     btServerPort = json['btServerPort'];
     customColorFilter = json['customColorFilter'] != null
@@ -787,11 +799,14 @@ class Settings {
     'defaultDoubleTapToSkipLength': defaultDoubleTapToSkipLength,
     'defaultPlayBackSpeed': defaultPlayBackSpeed,
     'fullScreenPlayer': fullScreenPlayer,
+    'forceLandscapePlayer': forceLandscapePlayer,
     'updateProgressAfterReading': updateProgressAfterReading,
     'enableAniSkip': enableAniSkip,
     'enableAutoSkip': enableAutoSkip,
     'aniSkipTimeoutLength': aniSkipTimeoutLength,
     'customDns': customDns,
+    'doHEnabled': doHEnabled,
+    'doHProviderId': doHProviderId,
     'btServerAddress': btServerAddress,
     'btServerPort': btServerPort,
     'fullScreenReader': fullScreenReader,

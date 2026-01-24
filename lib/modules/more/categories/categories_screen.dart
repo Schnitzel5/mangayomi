@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar_community/isar.dart';
@@ -11,6 +13,8 @@ import 'package:mangayomi/modules/more/settings/reader/providers/reader_state_pr
 import 'package:mangayomi/modules/more/settings/sync/providers/sync_providers.dart';
 import 'package:mangayomi/modules/widgets/progress_center.dart';
 import 'package:mangayomi/providers/l10n_providers.dart';
+import 'package:mangayomi/utils/item_type_filters.dart';
+import 'package:mangayomi/utils/item_type_localization.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 
 class CategoriesScreen extends ConsumerStatefulWidget {
@@ -24,17 +28,15 @@ class CategoriesScreen extends ConsumerStatefulWidget {
 class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
     with TickerProviderStateMixin {
   late TabController _tabBarController;
-  late final List<String> _tabList;
+  late final List<ItemType> _visibleTabTypes;
   @override
   void initState() {
     super.initState();
-    final hideItems = ref.read(hideItemsStateProvider);
-    _tabList = [
-      if (!hideItems.contains("/MangaLibrary")) "/MangaLibrary",
-      if (!hideItems.contains("/AnimeLibrary")) "/AnimeLibrary",
-      if (!hideItems.contains("/NovelLibrary")) "/NovelLibrary",
-    ];
-    _tabBarController = TabController(length: _tabList.length, vsync: this);
+    _visibleTabTypes = hiddenItemTypes(ref.read(hideItemsStateProvider));
+    _tabBarController = TabController(
+      length: _visibleTabTypes.length,
+      vsync: this,
+    );
     _tabBarController.animateTo(widget.data.$2);
   }
 
@@ -46,7 +48,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
 
   @override
   Widget build(BuildContext context) {
-    if (_tabList.isEmpty) {
+    if (_visibleTabTypes.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: Text(context.l10n.categories)),
         body: Center(child: Text("EMPTY\nMPTY\nMTY\nMT\n\n")),
@@ -55,7 +57,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
     final l10n = l10nLocalizations(context)!;
     return DefaultTabController(
       animationDuration: Duration.zero,
-      length: _tabList.length,
+      length: _visibleTabTypes.length,
       child: Scaffold(
         appBar: AppBar(
           elevation: 0,
@@ -67,23 +69,15 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen>
           bottom: TabBar(
             indicatorSize: TabBarIndicatorSize.label,
             controller: _tabBarController,
-            tabs: _tabList.map((route) {
-              if (route == "/MangaLibrary") return Tab(text: l10n.manga);
-              if (route == "/AnimeLibrary") return Tab(text: l10n.anime);
-              return Tab(text: l10n.novel);
+            tabs: _visibleTabTypes.map((type) {
+              return Tab(text: type.localized(l10n));
             }).toList(),
           ),
         ),
         body: TabBarView(
           controller: _tabBarController,
-          children: _tabList.map((route) {
-            if (route == "/MangaLibrary") {
-              return CategoriesTab(itemType: ItemType.manga);
-            }
-            if (route == "/AnimeLibrary") {
-              return CategoriesTab(itemType: ItemType.anime);
-            }
-            return CategoriesTab(itemType: ItemType.novel);
+          children: _visibleTabTypes.map((type) {
+            return CategoriesTab(itemType: type);
           }).toList(),
         ),
       ),
@@ -99,17 +93,75 @@ class CategoriesTab extends ConsumerStatefulWidget {
   ConsumerState<CategoriesTab> createState() => _CategoriesTabState();
 }
 
-class _CategoriesTabState extends ConsumerState<CategoriesTab> {
+class _CategoriesTabState extends ConsumerState<CategoriesTab>
+    with SingleTickerProviderStateMixin {
   List<Category> _entries = [];
-  void _updateCategoriesOrder(List<Category> categories) {
-    isar.writeTxnSync(() {
-      isar.categorys.clearSync();
-      isar.categorys.putAllSync(categories);
-      final cats = isar.categorys.filter().posIsNull().findAllSync();
-      for (var category in cats) {
-        isar.categorys.putSync(category..pos = category.id);
-      }
-    });
+  late AnimationController _swapAnimationController;
+  int? _animatingFromIndex;
+  int? _animatingToIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _swapAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+  }
+
+  @override
+  void dispose() {
+    _swapAnimationController.dispose();
+    super.dispose();
+  }
+
+  bool get _isDesktop {
+    if (kIsWeb) return false;
+    return Platform.isMacOS || Platform.isLinux || Platform.isWindows;
+  }
+
+  /// Moves a category from `index` to `newIndex` in the list,
+  /// swaps their positions in memory, and persists the change in Isar.
+  Future<void> _moveCategory(int index, int newIndex) async {
+    // Prevent invalid moves (out of bounds)
+    if (newIndex < 0 || newIndex >= _entries.length) return;
+
+    if (_isDesktop && mounted) {
+      setState(() {
+        _animatingFromIndex = index;
+        _animatingToIndex = newIndex;
+      });
+
+      await _swapAnimationController.forward(from: 0.0);
+
+      // Grab the two category objects involved in the swap
+      final a = _entries[index];
+      final b = _entries[newIndex];
+      // Swap their positions inside the in‑memory list
+      _entries[newIndex] = a;
+      _entries[index] = b;
+      // Swap their persisted `pos` values so ordering is saved correctly
+      final temp = a.pos;
+      a.pos = b.pos;
+      b.pos = temp;
+      // Persist both updated objects in a single Isar transaction
+      await isar.writeTxn(() async => isar.categorys.putAll([a, b]));
+
+      setState(() {
+        _animatingFromIndex = null;
+        _animatingToIndex = null;
+      });
+    } else {
+      final a = _entries[index];
+      final b = _entries[newIndex];
+      _entries[newIndex] = a;
+      _entries[index] = b;
+      final temp = a.pos;
+      a.pos = b.pos;
+      b.pos = temp;
+      await isar.writeTxn(() async => isar.categorys.putAll([a, b]));
+      setState(() {});
+    }
   }
 
   @override
@@ -141,196 +193,37 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab> {
             padding: const EdgeInsets.only(bottom: 100),
             itemBuilder: (context, index) {
               final category = _entries[index];
-              return AnimatedSwitcher(
-                duration: const Duration(milliseconds: 900),
-                child: Padding(
-                  key: Key('category_${category.id}'),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Card(
-                    child: Column(
-                      children: [
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            elevation: 0,
-                            shadowColor: Colors.transparent,
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.only(
-                                bottomLeft: Radius.circular(0),
-                                bottomRight: Radius.circular(0),
-                                topRight: Radius.circular(10),
-                                topLeft: Radius.circular(10),
-                              ),
-                            ),
-                          ),
-                          onPressed: () {
-                            _renameCategory(category);
-                          },
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              const Icon(Icons.label_outline_rounded),
-                              const SizedBox(width: 10),
-                              Expanded(child: Text(category.name!)),
-                            ],
-                          ),
+
+              Widget itemWidget = _buildCategoryCard(context, category, index);
+
+              if (_isDesktop &&
+                  _animatingFromIndex != null &&
+                  _animatingToIndex != null) {
+                if (index == _animatingFromIndex ||
+                    index == _animatingToIndex) {
+                  final isMovingDown =
+                      _animatingFromIndex! < _animatingToIndex!;
+                  final offset = index == _animatingFromIndex
+                      ? (isMovingDown ? 1.0 : -1.0)
+                      : (isMovingDown ? -1.0 : 1.0);
+
+                  itemWidget = AnimatedBuilder(
+                    animation: _swapAnimationController,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(
+                          0,
+                          offset * (1 - _swapAnimationController.value) * 80,
                         ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Row(
-                                  children: [
-                                    const SizedBox(width: 10),
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.arrow_drop_up_outlined,
-                                      ),
-                                      onPressed: index > 0
-                                          ? () {
-                                              final item = _entries[index - 1];
-                                              _entries.removeAt(index);
-                                              _entries.removeAt(index - 1);
-                                              int? currentPos = category.pos;
-                                              int? pos = item.pos;
-                                              setState(() {});
-                                              _updateCategoriesOrder([
-                                                ..._entries,
-                                                category..pos = pos,
-                                                item..pos = currentPos,
-                                              ]);
-                                            }
-                                          : null,
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.arrow_drop_down_outlined,
-                                      ),
-                                      onPressed: index < _entries.length - 1
-                                          ? () {
-                                              final item = _entries[index + 1];
-                                              _entries.removeAt(index + 1);
-                                              _entries.removeAt(index);
-                                              int? currentPos = category.pos;
-                                              int? pos = item.pos;
-                                              setState(() {});
-                                              _updateCategoriesOrder([
-                                                ..._entries,
-                                                category..pos = pos,
-                                                item..pos = currentPos,
-                                              ]);
-                                            }
-                                          : null,
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                IconButton(
-                                  onPressed: () {
-                                    _renameCategory(category);
-                                  },
-                                  icon: const Icon(
-                                    Icons.mode_edit_outline_outlined,
-                                  ),
-                                ),
-                                SizedBox(width: 10),
-                                IconButton(
-                                  onPressed: () {
-                                    isar.writeTxnSync(() async {
-                                      category.hide = !(category.hide ?? false);
-                                      category.updatedAt =
-                                          DateTime.now().millisecondsSinceEpoch;
-                                      isar.categorys.putSync(category);
-                                    });
-                                  },
-                                  icon: Icon(
-                                    !(category.hide ?? false)
-                                        ? Icons.visibility_outlined
-                                        : Icons.visibility_off_outlined,
-                                  ),
-                                ),
-                                SizedBox(width: 10),
-                                IconButton(
-                                  onPressed: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (context) {
-                                        return StatefulBuilder(
-                                          builder: (context, setState) {
-                                            return AlertDialog(
-                                              title: Text(l10n.delete_category),
-                                              content: Text(
-                                                l10n.delete_category_msg(
-                                                  category.name!,
-                                                ),
-                                              ),
-                                              actions: [
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.end,
-                                                  children: [
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        Navigator.pop(context);
-                                                      },
-                                                      child: Text(l10n.cancel),
-                                                    ),
-                                                    const SizedBox(width: 15),
-                                                    TextButton(
-                                                      onPressed: () async {
-                                                        await _removeCategory(
-                                                          category,
-                                                          context,
-                                                        );
-                                                      },
-                                                      child: Text(l10n.ok),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        );
-                                      },
-                                    );
-                                  },
-                                  icon: const Icon(Icons.delete_outlined),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return SlideTransition(
-                    position:
-                        Tween<Offset>(
-                          begin: const Offset(0, 1),
-                          end: Offset.zero,
-                        ).animate(
-                          CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.fastLinearToSlowEaseIn,
-                          ),
-                        ),
-                    child: SizeTransition(
-                      sizeFactor: CurvedAnimation(
-                        parent: animation,
-                        curve: Curves.fastLinearToSlowEaseIn,
-                      ),
-                      axisAlignment: 0.5,
-                      child: child,
-                    ),
+                        child: child,
+                      );
+                    },
+                    child: itemWidget,
                   );
-                },
-              );
+                }
+              }
+
+              return itemWidget;
             },
           );
         },
@@ -440,6 +333,150 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab> {
             const Icon(Icons.add),
             const SizedBox(width: 10),
             Text(l10n.add),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryCard(
+    BuildContext context,
+    Category category,
+    int index,
+  ) {
+    final l10n = l10nLocalizations(context)!;
+    return Padding(
+      key: Key('category_${category.id}'),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Card(
+        child: Column(
+          children: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                shadowColor: Colors.transparent,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(0),
+                    bottomRight: Radius.circular(0),
+                    topRight: Radius.circular(10),
+                    topLeft: Radius.circular(10),
+                  ),
+                ),
+              ),
+              onPressed: () {
+                _renameCategory(category);
+              },
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Icon(Icons.label_outline_rounded),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text(category.name!)),
+                ],
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Row(
+                      children: [
+                        const SizedBox(width: 10),
+                        IconButton(
+                          icon: const Icon(Icons.arrow_drop_up_outlined),
+                          onPressed: index > 0
+                              ? () {
+                                  _moveCategory(index, index - 1);
+                                }
+                              : null,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.arrow_drop_down_outlined),
+                          onPressed: index < _entries.length - 1
+                              ? () {
+                                  _moveCategory(index, index + 1);
+                                }
+                              : null,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        _renameCategory(category);
+                      },
+                      icon: const Icon(Icons.mode_edit_outline_outlined),
+                    ),
+                    SizedBox(width: 10),
+                    IconButton(
+                      onPressed: () async {
+                        await isar.writeTxn(() async {
+                          category.hide = !(category.hide ?? false);
+                          category.updatedAt =
+                              DateTime.now().millisecondsSinceEpoch;
+                          isar.categorys.put(category);
+                        });
+                      },
+                      icon: Icon(
+                        !(category.hide ?? false)
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    IconButton(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return StatefulBuilder(
+                              builder: (context, setState) {
+                                return AlertDialog(
+                                  title: Text(l10n.delete_category),
+                                  content: Text(
+                                    l10n.delete_category_msg(category.name!),
+                                  ),
+                                  actions: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: Text(l10n.cancel),
+                                        ),
+                                        const SizedBox(width: 15),
+                                        TextButton(
+                                          onPressed: () async {
+                                            await _removeCategory(
+                                              category,
+                                              context,
+                                            );
+                                          },
+                                          child: Text(l10n.ok),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                      icon: const Icon(Icons.delete_outlined),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ],
         ),
       ),

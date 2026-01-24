@@ -10,12 +10,12 @@ part of 'storage_usage.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(TotalChapterCacheSizeState)
-const totalChapterCacheSizeStateProvider =
+final totalChapterCacheSizeStateProvider =
     TotalChapterCacheSizeStateProvider._();
 
 final class TotalChapterCacheSizeStateProvider
     extends $NotifierProvider<TotalChapterCacheSizeState, String> {
-  const TotalChapterCacheSizeStateProvider._()
+  TotalChapterCacheSizeStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -43,14 +43,13 @@ final class TotalChapterCacheSizeStateProvider
 }
 
 String _$totalChapterCacheSizeStateHash() =>
-    r'6e92eec01cc21fbea3996d220c0b2edaadec3786';
+    r'fdecfd853bcd1355217fcef9590d6c69fbd92ce4';
 
 abstract class _$TotalChapterCacheSizeState extends $Notifier<String> {
   String build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<String, String>;
     final element =
         ref.element
@@ -60,17 +59,17 @@ abstract class _$TotalChapterCacheSizeState extends $Notifier<String> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(ClearChapterCacheOnAppLaunchState)
-const clearChapterCacheOnAppLaunchStateProvider =
+final clearChapterCacheOnAppLaunchStateProvider =
     ClearChapterCacheOnAppLaunchStateProvider._();
 
 final class ClearChapterCacheOnAppLaunchStateProvider
     extends $NotifierProvider<ClearChapterCacheOnAppLaunchState, bool> {
-  const ClearChapterCacheOnAppLaunchStateProvider._()
+  ClearChapterCacheOnAppLaunchStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -107,7 +106,6 @@ abstract class _$ClearChapterCacheOnAppLaunchState extends $Notifier<bool> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<bool, bool>;
     final element =
         ref.element
@@ -117,6 +115,6 @@ abstract class _$ClearChapterCacheOnAppLaunchState extends $Notifier<bool> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

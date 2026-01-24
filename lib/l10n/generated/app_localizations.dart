@@ -3442,6 +3442,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Defaul user agent'**
   String get default_user_agent;
+
+  /// No description provided for @forceLandscapeMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Force landscape mode'**
+  String get forceLandscapeMode;
+
+  /// No description provided for @forceLandscapeModeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Force the player to use landscape orientation.'**
+  String get forceLandscapeModeSubtitle;
+
+  /// No description provided for @dns_over_https.
+  ///
+  /// In en, this message translates to:
+  /// **'DNS-over-HTTPS (DoH)'**
+  String get dns_over_https;
+
+  /// No description provided for @dns_provider.
+  ///
+  /// In en, this message translates to:
+  /// **'DNS Provider'**
+  String get dns_provider;
 }
 
 class _AppLocalizationsDelegate
