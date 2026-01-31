@@ -16,7 +16,7 @@
       "subtitle": "Read manga, novels, and watch anime",
       "version": "0.7.0",
       "versionDate": "2026-01-09T10:56:42Z",
-      "versionDescription": "",
+      "versionDescription": "* Increase isolate pool size to enhance concurrent download capabilities\r\n\r\n**Full Changelog**: https://github.com/kodjodevf/mangayomi/compare/v0.6.95...v0.7.0",
       "downloadURL": "https://github.com/kodjodevf/mangayomi/releases/download/v0.7.0/Mangayomi-v0.7.0-ios.ipa",
       "localizedDescription": "Mangayomi is an open-source Flutter app for reading manga, novels, and watching anime across multiple platforms.",
       "iconURL": "https://raw.githubusercontent.com/kodjodevf/mangayomi/refs/heads/main/repo/images/icons/icon_default.webp",
@@ -32,7 +32,7 @@
         {
           "version": "0.7.0",
           "date": "2026-01-09T10:56:42Z",
-          "localizedDescription": "",
+          "localizedDescription": "* Increase isolate pool size to enhance concurrent download capabilities\r\n\r\n**Full Changelog**: https://github.com/kodjodevf/mangayomi/compare/v0.6.95...v0.7.0",
           "downloadURL": "https://github.com/kodjodevf/mangayomi/releases/download/v0.7.0/Mangayomi-v0.7.0-ios.ipa",
           "size": 45269466
         },
