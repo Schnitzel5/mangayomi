@@ -45,14 +45,15 @@ PODS:
   - flutter_inappwebview_ios (0.0.1):
     - Flutter
     - flutter_inappwebview_ios/Core (= 0.0.1)
-    - OrderedSet (~> 6.0.3)
+    - swift-collections (~> 1.1.1)
   - flutter_inappwebview_ios/Core (0.0.1):
     - Flutter
-    - OrderedSet (~> 6.0.3)
+    - swift-collections (~> 1.1.1)
   - flutter_qjs (0.0.1):
     - Flutter
   - flutter_web_auth_2 (3.0.0):
     - Flutter
+  - InternalCollectionsUtilities (1.1.1)
   - isar_community_flutter_libs (1.0.0):
     - Flutter
   - m_extension_server (0.0.1):
@@ -61,12 +62,8 @@ PODS:
     - Flutter
   - media_kit_video (0.0.1):
     - Flutter
-  - OrderedSet (6.0.3)
   - package_info_plus (0.4.5):
     - Flutter
-  - path_provider_foundation (0.0.1):
-    - Flutter
-    - FlutterMacOS
   - permission_handler_apple (9.3.0):
     - Flutter
   - rust_lib_mangayomi (0.0.1):
@@ -78,6 +75,22 @@ PODS:
   - SDWebImage/Core (5.17.0)
   - share_plus (0.0.1):
     - Flutter
+  - swift-collections (1.1.1):
+    - swift-collections/BitCollections (= 1.1.1)
+    - swift-collections/DequeModule (= 1.1.1)
+    - swift-collections/HashTreeCollections (= 1.1.1)
+    - swift-collections/HeapModule (= 1.1.1)
+    - swift-collections/OrderedCollections (= 1.1.1)
+  - swift-collections/BitCollections (1.1.1):
+    - InternalCollectionsUtilities (= 1.1.1)
+  - swift-collections/DequeModule (1.1.1):
+    - InternalCollectionsUtilities (= 1.1.1)
+  - swift-collections/HashTreeCollections (1.1.1):
+    - InternalCollectionsUtilities (= 1.1.1)
+  - swift-collections/HeapModule (1.1.1):
+    - InternalCollectionsUtilities (= 1.1.1)
+  - swift-collections/OrderedCollections (1.1.1):
+    - InternalCollectionsUtilities (= 1.1.1)
   - SwiftyGif (5.4.4)
   - url_launcher_ios (0.0.1):
     - Flutter
@@ -101,7 +114,6 @@ DEPENDENCIES:
   - media_kit_libs_ios_video (from `.symlinks/plugins/media_kit_libs_ios_video/ios`)
   - media_kit_video (from `.symlinks/plugins/media_kit_video/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
-  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - rust_lib_mangayomi (from `.symlinks/plugins/rust_lib_mangayomi/ios`)
   - screen_brightness_ios (from `.symlinks/plugins/screen_brightness_ios/ios`)
@@ -114,8 +126,9 @@ SPEC REPOS:
   trunk:
     - DKImagePickerController
     - DKPhotoGallery
-    - OrderedSet
+    - InternalCollectionsUtilities
     - SDWebImage
+    - swift-collections
     - SwiftyGif
 
 EXTERNAL SOURCES:
@@ -147,8 +160,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/media_kit_video/ios"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
-  path_provider_foundation:
-    :path: ".symlinks/plugins/path_provider_foundation/darwin"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
   rust_lib_mangayomi:
@@ -173,21 +184,21 @@ SPEC CHECKSUMS:
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_discord_rpc_fork: 970cf2beca17870caf8645556de01ae2b8587bb6
-  flutter_inappwebview_ios: b89ba3482b96fb25e00c967aae065701b66e9b99
+  flutter_inappwebview_ios: 9cde7869829d54b4110df350f3eedd192c5a4aea
   flutter_qjs: 1d5918f42171154e88dd545dd45f126c0291976f
   flutter_web_auth_2: 3464a7c16dc6480b6194fc89913bae6e82f28405
+  InternalCollectionsUtilities: af3f471602c4a67cbcb0bee0a80f6f55a33ae453
   isar_community_flutter_libs: bede843185a61a05ff364a05c9b23209523f7e0d
   m_extension_server: 6946ec189542b271dbd15629b9498595f1036761
   media_kit_libs_ios_video: 5a18affdb97d1f5d466dc79988b13eff6c5e2854
   media_kit_video: 1746e198cb697d1ffb734b1d05ec429d1fcd1474
-  OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
-  path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
   rust_lib_mangayomi: 360a904274b47351a0f7c26d3ce5aa6392bb8db3
   screen_brightness_ios: 9953fd7da5bd480f1a93990daeec2eb42d4f3b52
   SDWebImage: 750adf017a315a280c60fde706ab1e552a3ae4e9
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
+  swift-collections: ba248ecaf44ef500b27d5cf94d304218c89892ff
   SwiftyGif: 93a1cc87bf3a51916001cf8f3d63835fb64c819f
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
   volume_controller: 3657a1f65bedb98fa41ff7dc5793537919f31b12

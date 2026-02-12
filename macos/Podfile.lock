@@ -28,9 +28,6 @@ PODS:
   - OrderedSet (6.0.3)
   - package_info_plus (0.0.1):
     - FlutterMacOS
-  - path_provider_foundation (0.0.1):
-    - Flutter
-    - FlutterMacOS
   - rust_lib_mangayomi (0.0.1):
     - FlutterMacOS
   - screen_brightness_macos (0.1.0):
@@ -65,7 +62,6 @@ DEPENDENCIES:
   - media_kit_libs_macos_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_libs_macos_video/macos`)
   - media_kit_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
-  - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
   - rust_lib_mangayomi (from `Flutter/ephemeral/.symlinks/plugins/rust_lib_mangayomi/macos`)
   - screen_brightness_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_brightness_macos/macos`)
   - screen_retriever_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos`)
@@ -109,8 +105,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos
   package_info_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos
-  path_provider_foundation:
-    :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
   rust_lib_mangayomi:
     :path: Flutter/ephemeral/.symlinks/plugins/rust_lib_mangayomi/macos
   screen_brightness_macos:
@@ -136,7 +130,7 @@ SPEC CHECKSUMS:
   device_info_plus: 4fb280989f669696856f8b129e4a5e3cd6c48f76
   file_picker: 7584aae6fa07a041af2b36a2655122d42f578c1a
   flutter_discord_rpc_fork: 9f54b8cb8643b2fb84c685509e2eca403e284652
-  flutter_inappwebview_macos: c2d68649f9f8f1831bfcd98d73fd6256366d9d1d
+  flutter_inappwebview_macos: e69b76dd5c46a6d9471f195f3d8d36f11b3ab7a4
   flutter_qjs: cb2d0cba9deade1d03b89f6c432eac126f39482a
   flutter_web_auth_2: 62b08da29f15a20fa63f144234622a1488d45b65
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
@@ -146,7 +140,6 @@ SPEC CHECKSUMS:
   media_kit_video: fa6564e3799a0a28bff39442334817088b7ca758
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   package_info_plus: f0052d280d17aa382b932f399edf32507174e870
-  path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
   rust_lib_mangayomi: 4cbf39f5d158ad8eb0f17fd8e52d88514d435cd8
   screen_brightness_macos: 2a3ee243f8051c340381e8e51bcedced8360f421
   screen_retriever_macos: 452e51764a9e1cdb74b3c541238795849f21557f
