@@ -132,7 +132,8 @@ flutter:
 
   assets:
     - assets/
-    - assets/fonts/
+    - path: assets/fonts/
+      platforms: [android]
     - assets/trackers_icons/
     - assets/app_icons/
 flutter_launcher_icons:
