@@ -135,6 +135,10 @@ class Settings {
 
   bool? checkForExtensionUpdates;
 
+  int? backgroundLibraryUpdateIntervalHours;
+
+  int? lastBackgroundLibraryUpdateAt;
+
   @enumerated
   late ScaleType scaleType;
 
@@ -419,6 +423,8 @@ class Settings {
     this.enableLogs = false,
     this.checkForAppUpdates = true,
     this.checkForExtensionUpdates = true,
+    this.backgroundLibraryUpdateIntervalHours = 0,
+    this.lastBackgroundLibraryUpdateAt,
     this.backgroundColor = BackgroundColor.black,
     this.personalPageModeList,
     this.backupFrequency,
@@ -572,6 +578,9 @@ class Settings {
     enableLogs = json['enableLogs'];
     checkForAppUpdates = json['checkForAppUpdates'];
     checkForExtensionUpdates = json['checkForExtensionUpdates'];
+    backgroundLibraryUpdateIntervalHours =
+        json['backgroundLibraryUpdateIntervalHours'];
+    lastBackgroundLibraryUpdateAt = json['lastBackgroundLibraryUpdateAt'];
     if (json['cookiesList'] != null) {
       cookiesList = (json['cookiesList'] as List)
           .map((e) => MCookie.fromJson(e))
@@ -839,6 +848,9 @@ class Settings {
     'enableLogs': enableLogs,
     'checkForAppUpdates': checkForAppUpdates,
     'checkForExtensionUpdates': checkForExtensionUpdates,
+    'backgroundLibraryUpdateIntervalHours':
+        backgroundLibraryUpdateIntervalHours,
+    'lastBackgroundLibraryUpdateAt': lastBackgroundLibraryUpdateAt,
     'cookiesList': cookiesList,
     'cropBorders': cropBorders,
     'dateFormat': dateFormat,

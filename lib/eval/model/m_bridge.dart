@@ -695,13 +695,16 @@ void Function() botToast(
   bool onlyOne = true,
   bool? themeDark,
   bool showIcon = true,
+  String? actionLabel,
+  VoidCallback? onAction,
 }) {
   final context = navigatorKey.currentState?.context;
   final assets = [
     'assets/app_icons/icon-black.png',
     'assets/app_icons/icon-red.png',
   ];
-  return BotToast.showNotification(
+  late VoidCallback cancelToast;
+  cancelToast = BotToast.showNotification(
     onlyOne: onlyOne,
     dismissDirections: dismissDirections,
     align: Alignment(alignX, alignY),
@@ -717,7 +720,15 @@ void Function() botToast(
           )
         : null,
     title: (_) => Text(title, style: TextStyle(fontSize: fontSize)),
-    trailing: hasCloudFlare
+    trailing: actionLabel != null && onAction != null
+        ? (_) => TextButton(
+            onPressed: () {
+              onAction();
+              cancelToast();
+            },
+            child: Text(actionLabel),
+          )
+        : hasCloudFlare
         ? (_) => OutlinedButton.icon(
             style: OutlinedButton.styleFrom(elevation: 10),
             onPressed: () {
@@ -731,6 +742,7 @@ void Function() botToast(
           )
         : null,
   );
+  return cancelToast;
 }
 
 (encrypt.Encrypter, encrypt.IV) _encrypt(String keyy, String ivv) {
