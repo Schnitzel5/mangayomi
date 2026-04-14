@@ -21,7 +21,7 @@ typedef ProviderReader = T Function<T>(ProviderListenable<T> provider);
 typedef LibraryUpdateProgressCallback =
     FutureOr<void> Function(int current, int failed, int total, Manga manga);
 
-const Duration libraryUpdateRequestInterval = Duration(seconds: 2);
+const Duration libraryUpdateRequestInterval = Duration(seconds: 1);
 const Duration _libraryUpdateLockMaxAge = Duration(hours: 3);
 
 final Set<ItemType> _runningLibraryUpdates = {};
