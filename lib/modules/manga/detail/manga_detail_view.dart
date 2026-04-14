@@ -249,7 +249,7 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
     return showDialog<LocalFolder>(
       context: context,
       builder: (context) => SimpleDialog(
-        title: const Text("Select download destination"),
+        title: Text(context.l10n.select_download_destination),
         children: folders
             .map(
               (folder) => SimpleDialogOption(
@@ -652,7 +652,7 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
                                 ),
                                 PopupMenuItem<int>(
                                   value: 6,
-                                  child: const Text('Mass migration'),
+                                  child: Text(l10n.mass_migration_title),
                                 ),
                                 if (!isLocalArchive)
                                   PopupMenuItem<int>(
@@ -737,7 +737,7 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
                                       botToast(l10n.exported);
                                     }
                                   } catch (e) {
-                                    botToast("Failed to export metadata: $e");
+                                    botToast(l10n.failed_to_export_metadata(e));
                                   }
                                   break;
                                 case 6:

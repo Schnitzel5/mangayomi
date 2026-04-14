@@ -127,14 +127,21 @@ Future<void> _scanDirectoryRecursive(
 
 /// Check if a file is an image based on extension
 bool _isImageFile(String path) {
+  if (_isHiddenSystemFile(path)) return false;
   final extension = p.extension(path).toLowerCase();
   return _kImageExtensions.contains(extension);
 }
 
 /// Check if a file is a supported archive based on extension
 bool _isArchiveFile(String path) {
+  if (_isHiddenSystemFile(path)) return false;
   final extension = p.extension(path).toLowerCase();
   return _kArchiveExtensions.any((ext) => extension.endsWith(ext));
+}
+
+bool _isHiddenSystemFile(String path) {
+  final name = path.replaceAll('\\', '/').split('/').last;
+  return name.startsWith('.');
 }
 
 /// Extract full archive with all images
@@ -199,12 +206,7 @@ LocalArchive _extractFromArchiveFile(String path) {
 
     final imageFiles =
         archive.files
-            .where(
-              (file) =>
-                  file.isFile &&
-                  _isImageFile(file.name) &&
-                  !file.name.startsWith('.'),
-            )
+            .where((file) => file.isFile && _isImageFile(file.name))
             .toList()
           ..sort((a, b) => a.name.compareTo(b.name));
 
@@ -293,18 +295,12 @@ _extractMetadataFromImageFolder(String path) async {
       (file) =>
           file.isFile &&
           _isImageFile(file.name) &&
-          file.name.toLowerCase().contains('cover') &&
-          !file.name.startsWith('.'),
+          file.name.toLowerCase().contains('cover'),
       orElse: () {
         // If no cover, get first image alphabetically
         final imageFiles =
             archive.files
-                .where(
-                  (file) =>
-                      file.isFile &&
-                      _isImageFile(file.name) &&
-                      !file.name.startsWith('.'),
-                )
+                .where((file) => file.isFile && _isImageFile(file.name))
                 .toList()
               ..sort((a, b) => a.name.compareTo(b.name));
 

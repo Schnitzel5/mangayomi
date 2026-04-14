@@ -9,6 +9,7 @@ import 'package:mangayomi/models/track_search.dart';
 import 'package:mangayomi/modules/more/settings/track/myanimelist/model.dart';
 import 'package:mangayomi/modules/more/settings/track/providers/track_providers.dart';
 import 'package:mangayomi/services/http/m_client.dart';
+import 'package:mangayomi/utils/localized_message.dart';
 import 'base_tracker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'kitsu.g.dart';
@@ -363,7 +364,7 @@ class Kitsu extends _$Kitsu implements BaseTracker {
     final expiresIn = DateTime.fromMillisecondsSinceEpoch(mAKOAuth.expiresIn!);
     if (DateTime.now().isAfter(expiresIn)) {
       widgetRef.read(tracksProvider(syncId: syncId).notifier).logout();
-      botToast("Kitsu Token expired");
+      botToast(localizedMessage((l10n) => l10n.tracker_token_expired("Kitsu")));
       throw Exception("Token expired");
     }
     return mAKOAuth.accessToken!;

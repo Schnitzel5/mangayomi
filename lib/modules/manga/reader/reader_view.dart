@@ -76,7 +76,7 @@ class _MangaReaderViewState extends ConsumerState<MangaReaderView> {
             !(chapter.manga.value?.isLocalArchive ?? false)) {
           return scaffoldWith(
             context,
-            const Center(child: Text('Error: no pages available')),
+            Center(child: Text(context.l10n.no_pages_available)),
             restoreUi: true,
           );
         }

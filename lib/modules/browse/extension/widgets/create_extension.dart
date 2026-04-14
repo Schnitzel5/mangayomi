@@ -24,18 +24,24 @@ class _CreateExtensionState extends State<CreateExtension> {
   int _sourceTypeIndex = 0;
   int _itemTypeIndex = 0;
   int _languageIndex = 0;
-  final List<String> _sourceTypes = ["single", "multi", "torrent"];
-  final List<String> _itemTypes = ["Manga", "Anime", "Novel"];
-  final List<String> _languages = [
-    "Dart",
-    "JavaScript",
-    "LNReader compiled JS",
-  ];
+  static const List<String> _sourceTypeValues = ["single", "multi", "torrent"];
   SourceCodeLanguage _sourceCodeLanguage = SourceCodeLanguage.dart;
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final sourceTypeLabels = [
+      l10n.source_type_single,
+      l10n.source_type_multi,
+      l10n.source_type_torrent,
+    ];
+    final itemTypeLabels = [l10n.manga, l10n.anime, l10n.novel];
+    final languageLabels = [
+      l10n.source_language_dart,
+      l10n.source_language_javascript,
+      l10n.source_language_lnreader_compiled_js,
+    ];
     return Scaffold(
-      appBar: AppBar(title: const Text("Create Extension")),
+      appBar: AppBar(title: Text(l10n.create_extension)),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -45,7 +51,7 @@ class _CreateExtensionState extends State<CreateExtension> {
                 padding: const EdgeInsets.symmetric(horizontal: 17),
                 child: Row(
                   children: [
-                    const Text("Choose extension language"),
+                    Text(l10n.choose_extension_language),
                     const SizedBox(width: 20),
                     Flexible(
                       child: DropdownButton(
@@ -53,13 +59,13 @@ class _CreateExtensionState extends State<CreateExtension> {
                         isExpanded: true,
                         value: _languageIndex,
                         hint: Text(
-                          _languages[_languageIndex],
+                          languageLabels[_languageIndex],
                           style: const TextStyle(fontSize: 13),
                         ),
-                        items: _languages
+                        items: languageLabels
                             .map(
                               (e) => DropdownMenuItem(
-                                value: _languages.indexOf(e),
+                                value: languageLabels.indexOf(e),
                                 child: Text(
                                   e,
                                   style: const TextStyle(fontSize: 13),
@@ -85,51 +91,50 @@ class _CreateExtensionState extends State<CreateExtension> {
                   ],
                 ),
               ),
-              _textEditing("Name", context, "ex: myAnime", (v) {
+              _textEditing(l10n.name, context, l10n.extension_name_example, (
+                v,
+              ) {
                 setState(() {
                   _name = v;
                 });
               }),
-              _textEditing("Lang", context, "ex: en", (v) {
+              _textEditing(l10n.lang, context, l10n.language_code_example, (v) {
                 setState(() {
                   _lang = v;
                 });
               }),
-              _textEditing("BaseUrl", context, "ex: https://example.com", (v) {
+              _textEditing(l10n.base_url, context, l10n.base_url_example, (v) {
                 setState(() {
                   _baseUrl = v;
                 });
               }),
               _textEditing(
-                "ApiUrl (optional)",
+                l10n.api_url_optional,
                 context,
-                "ex: https://api.example.com",
+                l10n.api_url_example,
                 (v) {
                   setState(() {
                     _apiUrl = v;
                   });
                 },
               ),
-              _textEditing("iconUrl", context, "Source icon url", (v) {
+              _textEditing(l10n.icon_url, context, l10n.source_icon_url, (v) {
                 setState(() {
                   _iconUrl = v;
                 });
               }),
-              _textEditing(
-                "notes",
-                context,
-                "ex: this extension requires login",
-                (v) {
-                  setState(() {
-                    _notes = v;
-                  });
-                },
-              ),
+              _textEditing(l10n.notes, context, l10n.extension_notes_example, (
+                v,
+              ) {
+                setState(() {
+                  _notes = v;
+                });
+              }),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 17),
                 child: Row(
                   children: [
-                    const Text("Type"),
+                    Text(l10n.type),
                     const SizedBox(width: 20),
                     Flexible(
                       child: DropdownButton(
@@ -137,13 +142,13 @@ class _CreateExtensionState extends State<CreateExtension> {
                         isExpanded: true,
                         value: _sourceTypeIndex,
                         hint: Text(
-                          _sourceTypes[_sourceTypeIndex],
+                          sourceTypeLabels[_sourceTypeIndex],
                           style: const TextStyle(fontSize: 13),
                         ),
-                        items: _sourceTypes
+                        items: sourceTypeLabels
                             .map(
                               (e) => DropdownMenuItem(
-                                value: _sourceTypes.indexOf(e),
+                                value: sourceTypeLabels.indexOf(e),
                                 child: Text(
                                   e,
                                   style: const TextStyle(fontSize: 13),
@@ -165,7 +170,7 @@ class _CreateExtensionState extends State<CreateExtension> {
                 padding: const EdgeInsets.symmetric(horizontal: 17),
                 child: Row(
                   children: [
-                    const Text("Target"),
+                    Text(l10n.target),
                     const SizedBox(width: 20),
                     Flexible(
                       child: DropdownButton(
@@ -173,13 +178,13 @@ class _CreateExtensionState extends State<CreateExtension> {
                         isExpanded: true,
                         value: _itemTypeIndex,
                         hint: Text(
-                          _itemTypes[_itemTypeIndex],
+                          itemTypeLabels[_itemTypeIndex],
                           style: const TextStyle(fontSize: 13),
                         ),
-                        items: _itemTypes
+                        items: itemTypeLabels
                             .map(
                               (e) => DropdownMenuItem(
-                                value: _itemTypes.indexOf(e),
+                                value: itemTypeLabels.indexOf(e),
                                 child: Text(
                                   e,
                                   style: const TextStyle(fontSize: 13),
@@ -220,7 +225,7 @@ class _CreateExtensionState extends State<CreateExtension> {
                               baseUrl: _baseUrl,
                               apiUrl: _apiUrl,
                               iconUrl: _iconUrl,
-                              typeSource: _sourceTypes[_sourceTypeIndex],
+                              typeSource: _sourceTypeValues[_sourceTypeIndex],
                               itemType: ItemType.values.elementAt(
                                 _itemTypeIndex,
                               ),
@@ -244,12 +249,12 @@ class _CreateExtensionState extends State<CreateExtension> {
                               );
                             });
                             Navigator.pop(context);
-                            botToast("Source created successfully");
+                            botToast(l10n.source_created_successfully);
                           } else {
-                            botToast("Source already exists");
+                            botToast(l10n.source_already_exists);
                           }
                         } catch (e) {
-                          botToast("Error when creating source");
+                          botToast(l10n.error_when_creating_source);
                         }
                       }
                     },

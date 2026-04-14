@@ -42,7 +42,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
     if (_visibleTabTypes.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: Text(context.l10n.statistics)),
-        body: Center(child: Text("EMPTY\nMPTY\nMTY\nMT\n\n")),
+        body: Center(child: Text(context.l10n.empty_placeholder)),
       );
     }
     final l10n = context.l10n;
@@ -80,7 +80,8 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
     return stats.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Center(child: Text("Err: $err")),
+      error: (err, stack) =>
+          Center(child: Text(context.l10n.error_with_message(err))),
       data: (stats) {
         final totalItems = stats.totalItems;
         final totalChapters = stats.totalChapters;
