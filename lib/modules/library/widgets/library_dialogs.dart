@@ -9,6 +9,7 @@ import 'package:mangayomi/models/history.dart';
 import 'package:mangayomi/models/manga.dart';
 import 'package:mangayomi/models/update.dart';
 import 'package:mangayomi/models/changed.dart';
+import 'package:mangayomi/modules/library/providers/file_scanner.dart';
 import 'package:mangayomi/modules/library/providers/library_state_provider.dart';
 import 'package:mangayomi/modules/library/providers/local_archive.dart';
 import 'package:mangayomi/modules/manga/detail/providers/state_providers.dart';
@@ -112,7 +113,7 @@ void showDeleteMangaDialog({
                               if (!(manga.isLocalArchive ?? false)) {
                                 String mangaDirectory = "";
                                 if (manga.isLocalArchive ?? false) {
-                                  mangaDirectory = _deleteImport(
+                                  mangaDirectory = await _deleteImport(
                                     manga,
                                     mangaDirectory,
                                   );
@@ -188,13 +189,14 @@ void _removeImport(WidgetRef ref, Manga manga) {
   provider.addChangedPart(ActionType.removeItem, manga.id, "{}", false);
 }
 
-String _deleteImport(Manga manga, String mangaDirectory) {
+Future<String> _deleteImport(Manga manga, String mangaDirectory) async {
   for (var chapter in manga.chapters) {
     final path = chapter.archivePath;
     if (path == null) continue;
-    final chapterFile = File(path);
+    final resolvedPath = await resolveLocalArchivePath(path);
+    final chapterFile = File(resolvedPath);
     if (mangaDirectory.isEmpty) {
-      mangaDirectory = p.dirname(path);
+      mangaDirectory = p.dirname(resolvedPath);
     }
     try {
       if (chapterFile.existsSync()) {
@@ -207,7 +209,6 @@ String _deleteImport(Manga manga, String mangaDirectory) {
 
 Future<String> _deleteDownload(Manga manga, String mangaDirectory) async {
   final storageProvider = StorageProvider();
-  Directory? mangaDir;
   final idsToDelete = <int>{};
   final downloadedIds = (await isar.downloads.where().idProperty().findAll())
       .toSet();
@@ -217,33 +218,32 @@ Future<String> _deleteDownload(Manga manga, String mangaDirectory) async {
   for (var chapter in manga.chapters) {
     if (chapter.id == null || !downloadedIds.contains(chapter.id)) continue;
 
-    mangaDir ??= await storageProvider.getMangaMainDirectory(chapter);
-    final chapterDir = await storageProvider.getMangaChapterDirectory(
-      chapter,
-      mangaMainDirectory: mangaDir,
-    );
-    File? file;
-
-    if (mangaDirectory.isEmpty) mangaDirectory = mangaDir!.path;
-    if (manga.itemType == ItemType.manga) {
-      file = File(p.join(mangaDir!.path, "${chapter.name}.cbz"));
-    } else if (manga.itemType == ItemType.anime) {
-      file = File(
-        p.join(
-          mangaDir!.path,
-          "${chapter.name!.replaceForbiddenCharacters(' ')}.mp4",
-        ),
+    final folders = await getAllLocalFolders();
+    for (final folder in folders) {
+      final folderPath = folder.path;
+      if (folderPath == null || folderPath.isEmpty) continue;
+      final mangaDir = Directory(
+        p.join(folderPath, manga.name!.replaceForbiddenCharacters('_')),
       );
-    }
+      final chapterDir = await storageProvider.getMangaChapterDirectory(
+        chapter,
+        mangaMainDirectory: mangaDir,
+      );
+      final chapterName = chapter.name!.replaceForbiddenCharacters(' ');
+      if (mangaDirectory.isEmpty) mangaDirectory = mangaDir.path;
 
-    try {
-      if (file != null && file.existsSync()) {
-        file.deleteSync();
+      for (final entity in [
+        File(p.join(mangaDir.path, "${chapter.name}.cbz")),
+        File(p.join(mangaDir.path, "$chapterName.cbz")),
+        File(p.join(mangaDir.path, "$chapterName.mp4")),
+        File(p.join(chapterDir!.path, "$chapterName.html")),
+        chapterDir,
+      ]) {
+        try {
+          if (entity.existsSync()) entity.deleteSync(recursive: true);
+        } catch (_) {}
       }
-      if (chapterDir!.existsSync()) {
-        chapterDir.deleteSync(recursive: true);
-      }
-    } catch (_) {}
+    }
     idsToDelete.add(chapter.id!);
   }
   if (idsToDelete.isNotEmpty) {

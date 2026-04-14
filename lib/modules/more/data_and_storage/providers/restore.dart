@@ -159,6 +159,7 @@ void restoreBackup(Ref ref, Map<String, dynamic> backup, {bool full = true}) {
           ?.map((e) => CustomButton.fromJson(e))
           .toList();
 
+      final currentSettings = isar.settings.getSync(227);
       isar.writeTxnSync(() {
         isar.mangas.clearSync();
         if (manga != null) {
@@ -246,7 +247,18 @@ void restoreBackup(Ref ref, Map<String, dynamic> backup, {bool full = true}) {
           }
           isar.settings.clearSync();
           if (settings != null) {
-            isar.settings.putAllSync(settings);
+            isar.settings.putAllSync(
+              settings
+                  .map(
+                    (settings) => currentSettings == null
+                        ? settings
+                        : _preserveDeviceLocalSettings(
+                            settings,
+                            currentSettings,
+                          ),
+                  )
+                  .toList(),
+            );
           }
           isar.customButtons.clearSync();
           if (customButtons != null) {
@@ -526,6 +538,18 @@ void restoreTachiBkBackup(Ref ref, String path, BackupType bkType) {
     isar.trackPreferences.clearSync();
     _invalidateCommonState(ref);
   });
+}
+
+Settings _preserveDeviceLocalSettings(Settings incoming, Settings current) {
+  return incoming
+    ..id = current.id
+    ..localFolders = current.localFolders
+    ..namedLocalFolders = current.namedLocalFolders
+    ..downloadLocalFolderName = current.downloadLocalFolderName
+    ..askDownloadDestination = current.askDownloadDestination
+    ..androidProxyServer = current.androidProxyServer
+    ..jrePath = current.jrePath
+    ..extensionServerPath = current.extensionServerPath;
 }
 
 void _invalidateCommonState(Ref ref) {

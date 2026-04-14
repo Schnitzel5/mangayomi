@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:mangayomi/main.dart';
 import 'package:mangayomi/models/chapter.dart';
 import 'package:mangayomi/models/download.dart';
+import 'package:mangayomi/modules/library/providers/file_scanner.dart';
 import 'package:mangayomi/modules/manga/reader/providers/push_router.dart';
 import 'package:mangayomi/modules/manga/reader/providers/reader_controller_provider.dart';
 import 'package:mangayomi/providers/storage_provider.dart';
@@ -54,29 +55,32 @@ extension ChapterExtension on Chapter {
     if (download == null) return;
 
     final storageProvider = StorageProvider();
-    final mangaDir = await storageProvider.getMangaMainDirectory(this);
-    final chapterDir = await storageProvider.getMangaChapterDirectory(
-      this,
-      mangaMainDirectory: mangaDir,
-    );
-
-    try {
-      final cbzFile = File(p.join(mangaDir!.path, "$name.cbz"));
-      if (cbzFile.existsSync()) cbzFile.deleteSync();
-    } catch (_) {}
-    try {
-      final mp4File = File(
-        p.join(mangaDir!.path, "${name!.replaceForbiddenCharacters(' ')}.mp4"),
+    final chapterName = name!.replaceForbiddenCharacters(' ');
+    final folders = await getAllLocalFolders();
+    for (final folder in folders) {
+      final folderPath = folder.path;
+      if (folderPath == null || folderPath.isEmpty) continue;
+      final mangaDir = Directory(
+        p.join(folderPath, manga.value!.name!.replaceForbiddenCharacters('_')),
       );
-      if (mp4File.existsSync()) mp4File.deleteSync();
-    } catch (_) {}
-    try {
-      final htmlFile = File(p.join(mangaDir!.path, "$name.html"));
-      if (htmlFile.existsSync()) htmlFile.deleteSync();
-    } catch (_) {}
-    try {
-      chapterDir?.deleteSync(recursive: true);
-    } catch (_) {}
+      final chapterDir = await storageProvider.getMangaChapterDirectory(
+        this,
+        mangaMainDirectory: mangaDir,
+      );
+
+      for (final entity in [
+        File(p.join(mangaDir.path, "$name.cbz")),
+        File(p.join(mangaDir.path, "$chapterName.cbz")),
+        File(p.join(mangaDir.path, "$chapterName.mp4")),
+        File(p.join(mangaDir.path, "$name.html")),
+        File(p.join(chapterDir!.path, "$chapterName.html")),
+        chapterDir,
+      ]) {
+        try {
+          if (entity.existsSync()) entity.deleteSync(recursive: true);
+        } catch (_) {}
+      }
+    }
 
     cancelDownloads(download.id);
   }
