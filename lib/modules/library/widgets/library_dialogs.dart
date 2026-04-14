@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar_community/isar.dart';
@@ -28,8 +29,8 @@ void showDeleteMangaDialog({
   required WidgetRef ref,
   required ItemType itemType,
 }) {
-  List<int> fromLibList = [];
-  List<int> downloadedChapsList = [];
+  Set<int> fromLibList = {};
+  Set<int> downloadedChapsList = {};
   showDialog(
     context: context,
     builder: (context) {
@@ -54,10 +55,10 @@ void showDeleteMangaDialog({
                         label: l10n.from_library,
                         onTap: () {
                           setState(() {
-                            if (fromLibList == mangaIdsList) {
-                              fromLibList = [];
+                            if (setEquals(fromLibList, mangaIdsList)) {
+                              fromLibList = {};
                             } else {
-                              fromLibList = mangaIdsList;
+                              fromLibList = {...mangaIdsList};
                             }
                           });
                         },
@@ -69,10 +70,10 @@ void showDeleteMangaDialog({
                             : l10n.downloaded_episodes,
                         onTap: () {
                           setState(() {
-                            if (downloadedChapsList == mangaIdsList) {
-                              downloadedChapsList = [];
+                            if (setEquals(downloadedChapsList, mangaIdsList)) {
+                              downloadedChapsList = {};
                             } else {
-                              downloadedChapsList = mangaIdsList;
+                              downloadedChapsList = {...mangaIdsList};
                             }
                           });
                         },

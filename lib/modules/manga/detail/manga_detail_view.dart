@@ -2492,7 +2492,7 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
             child: Material(
               color: bgColor,
               borderRadius: BorderRadius.circular(20),
-              clipBehavior: Clip.antiAliasWithSaveLayer,
+              clipBehavior: Clip.antiAlias,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: SuperListView.separated(
