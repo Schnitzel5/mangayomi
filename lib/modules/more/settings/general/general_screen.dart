@@ -1,13 +1,19 @@
+import 'dart:io';
+
+import 'package:mangayomi/eval/model/m_bridge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mangayomi/main.dart';
 import 'package:mangayomi/models/settings.dart';
+import 'package:mangayomi/services/background_library_update.dart';
+import 'package:mangayomi/services/background_update_notification_service.dart';
 import 'package:mangayomi/modules/more/providers/algorithm_weights_state_provider.dart';
 import 'package:mangayomi/modules/more/settings/general/providers/general_state_provider.dart';
 import 'package:mangayomi/providers/l10n_providers.dart';
 import 'package:mangayomi/modules/more/settings/general/providers/doh_provider_notifier.dart';
 import 'package:mangayomi/utils/extensions/build_context_extensions.dart';
+import 'package:mangayomi/utils/log/logger.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 
 class GeneralScreen extends ConsumerStatefulWidget {
@@ -49,11 +55,79 @@ class _GeneralStateScreen extends ConsumerState<GeneralScreen> {
     final rpcShowCoverImage = ref.watch(rpcShowCoverImageStateProvider);
     final doHState = ref.watch(doHProviderStateProvider);
     final availableProviders = ref.watch(availableDoHProvidersProvider);
+    final backgroundLibraryUpdateInterval = ref.watch(
+      backgroundLibraryUpdateIntervalStateProvider,
+    );
     return Scaffold(
       appBar: AppBar(title: Text(l10n!.general)),
       body: SingleChildScrollView(
         child: Column(
           children: [
+            if (Platform.isAndroid || Platform.isIOS)
+              ListTile(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      final options = _backgroundLibraryUpdateOptions(context);
+                      return AlertDialog(
+                        title: Text('${l10n.updates} (${l10n.background})'),
+                        content: SizedBox(
+                          width: context.width(0.8),
+                          child: RadioGroup<int>(
+                            groupValue: backgroundLibraryUpdateInterval,
+                            onChanged: (value) =>
+                                _setBackgroundLibraryUpdateInterval(
+                                  context,
+                                  ref,
+                                  value,
+                                ),
+                            child: SuperListView.builder(
+                              shrinkWrap: true,
+                              itemCount: options.length,
+                              itemBuilder: (context, index) {
+                                final option = options[index];
+                                return RadioListTile<int>(
+                                  dense: true,
+                                  contentPadding: const EdgeInsets.all(0),
+                                  value: option.$1,
+                                  title: Text(option.$2),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        actions: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton(
+                                onPressed: () async {
+                                  Navigator.pop(context);
+                                },
+                                child: Text(
+                                  l10n.cancel,
+                                  style: TextStyle(color: context.primaryColor),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+                title: Text('${l10n.updates} (${l10n.background})'),
+                subtitle: Text(
+                  _backgroundLibraryUpdateOptions(context)
+                      .firstWhere(
+                        (option) =>
+                            option.$1 == backgroundLibraryUpdateInterval,
+                      )
+                      .$2,
+                  style: TextStyle(fontSize: 11, color: context.secondaryColor),
+                ),
+              ),
             ExpansionTile(
               title: Text(l10n.dns_over_https),
               initiallyExpanded: doHState.enabled,
@@ -463,6 +537,63 @@ class _GeneralStateScreen extends ConsumerState<GeneralScreen> {
         },
       ),
     );
+  }
+}
+
+List<(int, String)> _backgroundLibraryUpdateOptions(BuildContext context) {
+  final l10n = l10nLocalizations(context)!;
+  return [
+    (backgroundLibraryUpdateOff, l10n.off),
+    (backgroundLibraryUpdateEvery6Hours, l10n.every_6_hours),
+    (backgroundLibraryUpdateEvery12Hours, l10n.every_12_hours),
+  ];
+}
+
+Future<void> _setBackgroundLibraryUpdateInterval(
+  BuildContext context,
+  WidgetRef ref,
+  int? value,
+) async {
+  if (value == null) {
+    return;
+  }
+
+  if (value != backgroundLibraryUpdateOff) {
+    try {
+      final granted =
+          await BackgroundUpdateNotificationService.ensurePermissions();
+      if (!context.mounted) return;
+      if (!granted) {
+        botToast(
+          'Notifications are disabled. Background update progress may not be shown.',
+        );
+      }
+    } catch (e, stackTrace) {
+      AppLogger.log(
+        'Failed to request background update notification permission: '
+        '$e\n$stackTrace',
+      );
+      if (!context.mounted) return;
+      botToast(
+        'Notifications are disabled. Background update progress may not be shown.',
+      );
+    }
+  }
+
+  try {
+    await ref
+        .read(backgroundLibraryUpdateIntervalStateProvider.notifier)
+        .set(value);
+    if (context.mounted) {
+      Navigator.pop(context);
+    }
+  } catch (e, stackTrace) {
+    AppLogger.log(
+      'Failed to schedule background library update: $e\n$stackTrace',
+    );
+    if (context.mounted) {
+      botToast('Failed to update background library update settings.');
+    }
   }
 }
 

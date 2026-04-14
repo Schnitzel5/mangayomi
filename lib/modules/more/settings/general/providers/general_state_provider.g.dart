@@ -380,3 +380,59 @@ abstract class _$UserAgentState extends $Notifier<String> {
     element.handleCreate(ref, build);
   }
 }
+
+@ProviderFor(BackgroundLibraryUpdateIntervalState)
+final backgroundLibraryUpdateIntervalStateProvider =
+    BackgroundLibraryUpdateIntervalStateProvider._();
+
+final class BackgroundLibraryUpdateIntervalStateProvider
+    extends $NotifierProvider<BackgroundLibraryUpdateIntervalState, int> {
+  BackgroundLibraryUpdateIntervalStateProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'backgroundLibraryUpdateIntervalStateProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() =>
+      _$backgroundLibraryUpdateIntervalStateHash();
+
+  @$internal
+  @override
+  BackgroundLibraryUpdateIntervalState create() =>
+      BackgroundLibraryUpdateIntervalState();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(int value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<int>(value),
+    );
+  }
+}
+
+String _$backgroundLibraryUpdateIntervalStateHash() =>
+    r'c5d834affb7921d6af25515e3413bf17e68bc10e';
+
+abstract class _$BackgroundLibraryUpdateIntervalState extends $Notifier<int> {
+  int build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<int, int>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<int, int>,
+              int,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}

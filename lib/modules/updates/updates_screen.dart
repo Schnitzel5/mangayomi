@@ -100,15 +100,7 @@ class _UpdatesScreenState extends BaseLibraryTabScreenState<UpdatesScreen> {
   Future<void> _updateLibrary() async {
     setState(() => _isLoading = true);
     final itemType = getCurrentItemType();
-    final mangaList = isar.mangas
-        .filter()
-        .idIsNotNull()
-        .favoriteEqualTo(true)
-        .and()
-        .itemTypeEqualTo(itemType)
-        .and()
-        .isLocalArchiveEqualTo(false)
-        .findAllSync();
+    final mangaList = getFavoriteLibraryMangas(itemType);
     await updateLibrary(
       ref: ref,
       context: context,

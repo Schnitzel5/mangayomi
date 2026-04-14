@@ -105,6 +105,8 @@ dependencies:
     git:
       url: https://github.com/kodjodevf/m_extension_server.git
   flutter_tts: ^4.2.5
+  workmanager: ^0.9.0+3
+  flutter_local_notifications: ^17.2.4
 
 dependency_overrides:
   ffi: ^2.1.3

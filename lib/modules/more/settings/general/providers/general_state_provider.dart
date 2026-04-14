@@ -1,5 +1,6 @@
 import 'package:mangayomi/main.dart';
 import 'package:mangayomi/models/settings.dart';
+import 'package:mangayomi/services/background_library_update.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'general_state_provider.g.dart';
 
@@ -141,5 +142,28 @@ class UserAgentState extends _$UserAgentState {
           ..updatedAt = DateTime.now().millisecondsSinceEpoch,
       ),
     );
+  }
+}
+
+@riverpod
+class BackgroundLibraryUpdateIntervalState
+    extends _$BackgroundLibraryUpdateIntervalState {
+  @override
+  int build() {
+    return isar.settings.getSync(227)!.backgroundLibraryUpdateIntervalHours ??
+        backgroundLibraryUpdateOff;
+  }
+
+  Future<void> set(int value) async {
+    final settings = isar.settings.getSync(227);
+    state = value;
+    isar.writeTxnSync(
+      () => isar.settings.putSync(
+        settings!
+          ..backgroundLibraryUpdateIntervalHours = value
+          ..updatedAt = DateTime.now().millisecondsSinceEpoch,
+      ),
+    );
+    await BackgroundLibraryUpdateScheduler.syncWithSettings();
   }
 }
