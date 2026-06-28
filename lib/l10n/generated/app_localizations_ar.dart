@@ -1467,6 +1467,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'في أي نقطة لوضع علامة على الحلقة كمشاهدة';
 
   @override
+  String get mark_duplicate_chapters_read =>
+      'Mark duplicate chapter numbers as read';
+
+  @override
   String get default_skip_intro_length => 'طول تخطي المقدمة الافتراضي';
 
   @override

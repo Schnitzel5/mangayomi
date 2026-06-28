@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar_community/isar.dart';
 import 'package:mangayomi/eval/model/m_manga.dart';
@@ -15,7 +13,7 @@ import 'package:mangayomi/modules/mass_migration/models/mass_migration_models.da
 import 'package:mangayomi/modules/manga/detail/providers/isar_providers.dart';
 import 'package:mangayomi/modules/more/settings/sync/providers/sync_providers.dart';
 import 'package:mangayomi/services/get_detail.dart';
-import 'package:mangayomi/services/search_.dart';
+import 'package:mangayomi/services/search.dart';
 import 'package:mangayomi/utils/extensions/string_extensions.dart';
 
 Future<void> migrateLibraryItem({
@@ -137,26 +135,23 @@ void _syncMigratedMangaFromPreview({
           .toList() ??
       [];
 
-  final previewImageUrl = _trimmedOrDefault(
-    preview.imageUrl,
-    oldManga.imageUrl,
-  );
+  final previewImageUrl = preview.imageUrl.trimmedOrDefault(oldManga.imageUrl);
   oldManga
     ..imageUrl = previewImageUrl == null
         ? null
         : previewImageUrl.startsWith('http')
         ? previewImageUrl
         : '${destinationSource.baseUrl ?? ''}/${previewImageUrl.getUrlWithoutDomain}'
-    ..name = _trimmedOrDefault(preview.name, oldManga.name)
+    ..name = preview.name.trimmedOrDefault(oldManga.name)
     ..genre = genre.isEmpty ? oldManga.genre ?? [] : genre
-    ..author = _trimmedOrDefault(preview.author, oldManga.author) ?? ''
-    ..artist = _trimmedOrDefault(preview.artist, oldManga.artist) ?? ''
+    ..author = preview.author.trimmedOrDefault(oldManga.author) ?? ''
+    ..artist = preview.artist.trimmedOrDefault(oldManga.artist) ?? ''
     ..status = preview.status == Status.unknown
         ? oldManga.status
         : preview.status ?? Status.unknown
     ..description =
-        _trimmedOrDefault(preview.description, oldManga.description) ?? ''
-    ..link = _trimmedOrDefault(preview.link, oldManga.link)
+        preview.description.trimmedOrDefault(oldManga.description) ?? ''
+    ..link = preview.link.trimmedOrDefault(oldManga.link)
     ..source = destinationSource.name
     ..lang = destinationSource.lang
     ..itemType = destinationSource.itemType
@@ -478,11 +473,4 @@ String _normalizeTitle(String? value) {
           .replaceAll(RegExp(r'\s+'), ' ')
           .trim() ??
       '';
-}
-
-String? _trimmedOrDefault(String? value, String? defaultValue) {
-  if (value?.trim().isNotEmpty ?? false) {
-    return value!.trim();
-  }
-  return defaultValue;
 }

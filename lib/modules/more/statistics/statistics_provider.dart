@@ -30,50 +30,77 @@ Future<StatisticsData> getStatistics(
   Ref ref, {
   required ItemType itemType,
 }) async {
-  final items = await isar.mangas
+  // Aggregate inside Isar instead of materialising every favourite manga
+  // and every one of their chapters in Dart. Loading all chapters of a
+  // 75+ manga library exhausts heap on Android and reliably crashes the
+  // statistics screen — see issue #543.
+
+  final totalItems = await isar.mangas
       .filter()
-      .idIsNotNull()
       .favoriteEqualTo(true)
       .itemTypeEqualTo(itemType)
-      .findAll();
+      .count();
 
-  final chapters = await isar.chapters
+  final totalChapters = await isar.chapters
       .filter()
-      .idIsNotNull()
       .manga((q) => q.favoriteEqualTo(true).itemTypeEqualTo(itemType))
-      .findAll();
+      .count();
+
+  final readChapters = await isar.chapters
+      .filter()
+      .manga((q) => q.favoriteEqualTo(true).itemTypeEqualTo(itemType))
+      .isReadEqualTo(true)
+      .count();
 
   final downloadedCount = await isar.downloads
       .filter()
-      .idIsNotNull()
-      .chapter((q) => q.manga((m) => m.itemTypeEqualTo(itemType)))
-      .chapter((q) => q.manga((m) => m.favoriteEqualTo(true)))
+      .chapter(
+        (q) => q.manga(
+          (m) => m.favoriteEqualTo(true).itemTypeEqualTo(itemType),
+        ),
+      )
       .isDownloadEqualTo(true)
       .count();
 
-  final totalItems = items.length;
-  final totalChapters = chapters.length;
-  final readChapters = chapters.where((c) => c.isRead ?? false).length;
+  // Completed items: a favourite manga whose source-reported status is
+  // Completed AND every chapter is read AND there is at least one chapter.
+  // Pull only the IDs of completed favourites, then run two cheap count()
+  // queries per item — never materialise the chapter rows.
+  final completedFavouriteIds = await isar.mangas
+      .filter()
+      .favoriteEqualTo(true)
+      .itemTypeEqualTo(itemType)
+      .statusEqualTo(Status.completed)
+      .idProperty()
+      .findAll();
 
   int completedItems = 0;
-  for (var item in items) {
-    if (item.status == Status.completed) {
-      final itemChapters = item.chapters.toList();
-      if (itemChapters.isNotEmpty &&
-          itemChapters.every((element) => element.isRead ?? false)) {
-        completedItems++;
-      }
-    }
+  for (final id in completedFavouriteIds) {
+    final total = await isar.chapters
+        .filter()
+        .mangaIdEqualTo(id)
+        .count();
+    if (total == 0) continue;
+    final unread = await isar.chapters
+        .filter()
+        .mangaIdEqualTo(id)
+        .isReadEqualTo(false)
+        .count();
+    if (unread == 0) completedItems++;
   }
 
-  final histories = await isar.historys
+  // Sum reading time without loading full History rows. Project just the
+  // int field — Isar returns a List<int?> of plain ints, far cheaper than
+  // hydrating every history record.
+  final readingTimes = await isar.historys
       .filter()
       .itemTypeEqualTo(itemType)
+      .readingTimeSecondsProperty()
       .findAll();
-  int totalReadingTimeSeconds = 0;
-  for (final h in histories) {
-    totalReadingTimeSeconds += h.readingTimeSeconds ?? 0;
-  }
+  final totalReadingTimeSeconds = readingTimes.fold<int>(
+    0,
+    (sum, v) => sum + (v ?? 0),
+  );
 
   return StatisticsData(
     totalItems: totalItems,

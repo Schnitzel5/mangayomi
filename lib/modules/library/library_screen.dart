@@ -132,9 +132,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     final showCategoryTabs = watchWithSettings(
       libraryShowCategoryTabsStateProvider.call,
     );
-    final reverse = watchWithSettings(
-      sortLibraryMangaStateProvider.call,
-    ).reverse!;
+    final reverse =
+        watchWithSettings(sortLibraryMangaStateProvider.call).reverse ?? false;
     final continueReaderBtn = watchWithSettings(
       libraryShowContinueReadingButtonStateProvider.call,
     );
@@ -169,7 +168,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
       mangaFilterTrackingStateProvider.call,
     );
     final sortType =
-        watchWithSettings(sortLibraryMangaStateProvider.call).index as int;
+        watchWithSettings(sortLibraryMangaStateProvider.call).index ?? 0;
 
     final searchQuery = _textEditingController.text;
 

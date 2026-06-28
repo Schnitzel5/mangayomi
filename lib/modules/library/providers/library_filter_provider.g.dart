@@ -18,8 +18,9 @@ final downloadedChapterIdsProvider = DownloadedChapterIdsProvider._();
 /// Returns a [Set<int>] for O(1) lookup instead of per-chapter queries.
 
 final class DownloadedChapterIdsProvider
-    extends $FunctionalProvider<Set<int>, Set<int>, Set<int>>
-    with $Provider<Set<int>> {
+    extends
+        $FunctionalProvider<AsyncValue<Set<int>>, Set<int>, Stream<Set<int>>>
+    with $FutureModifier<Set<int>>, $StreamProvider<Set<int>> {
   /// Pre-fetches all downloaded chapter IDs in a single Isar query.
   /// Returns a [Set<int>] for O(1) lookup instead of per-chapter queries.
   DownloadedChapterIdsProvider._()
@@ -38,25 +39,17 @@ final class DownloadedChapterIdsProvider
 
   @$internal
   @override
-  $ProviderElement<Set<int>> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $StreamProviderElement<Set<int>> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
 
   @override
-  Set<int> create(Ref ref) {
+  Stream<Set<int>> create(Ref ref) {
     return downloadedChapterIds(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(Set<int> value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<Set<int>>(value),
-    );
   }
 }
 
 String _$downloadedChapterIdsHash() =>
-    r'a51ff78fb0ad2548c719d1ca400ae474fc01e683';
+    r'ff409df987e776e8c150e541c5aa48b1d5f9e9b9';
 
 /// Pre-fetches all manga IDs that have at least one tracking entry.
 
@@ -207,7 +200,7 @@ final class FilteredLibraryMangaProvider
 }
 
 String _$filteredLibraryMangaHash() =>
-    r'afecb3de71f1f8c1682a0bfd9949f8a372c7d1b6';
+    r'17c6f370c3120277379c3bbb22c31a19ff028682';
 
 /// Filters and sorts a list of [Manga] based on library filter/sort settings.
 

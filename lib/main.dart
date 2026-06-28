@@ -39,6 +39,7 @@ import 'package:mangayomi/services/download_manager/m_downloader.dart';
 import 'package:mangayomi/src/rust/frb_generated.dart';
 import 'package:mangayomi/utils/discord_rpc.dart';
 import 'package:mangayomi/utils/log/logger.dart';
+import 'package:mangayomi/utils/platform_utils.dart';
 import 'package:mangayomi/utils/url_protocol/api.dart';
 import 'package:mangayomi/modules/more/settings/appearance/providers/theme_provider.dart';
 import 'package:mangayomi/modules/library/providers/file_scanner.dart';
@@ -62,6 +63,15 @@ void main(List<String> args) async {
       WidgetsFlutterBinding.ensureInitialized();
       if (Platform.isLinux && runWebViewTitleBarWidget(args)) return;
 
+      // Cap the decoded image cache so a large library grid can't fill the
+      // default 100 MB ceiling with full-resolution covers and OOM constrained
+      // mobile heaps. Mobile gets a tight 64 MB; desktop keeps 256 MB. The
+      // encoded-bytes LRU in CustomExtendedNetworkImageProvider (50 MB) is a
+      // separate cache and is not affected by this setting.
+      PaintingBinding.instance.imageCache.maximumSizeBytes = isMobile
+          ? 64 << 20
+          : 256 << 20;
+
       // Widget-layer errors (build / layout / paint)
       FlutterError.onError = (FlutterErrorDetails details) {
         FlutterError.presentError(details); // keep default red-screen in debug
@@ -84,7 +94,7 @@ void main(List<String> args) async {
       await RustLib.init();
       await imgCropIsolate.start();
       await getIsolateService.start();
-      if (!(Platform.isAndroid || Platform.isIOS)) {
+      if (!isMobile) {
         await windowManager.ensureInitialized();
         await WindowGeometry.restore();
       }
@@ -104,9 +114,19 @@ void main(List<String> args) async {
       }
       final storage = StorageProvider();
       await storage.requestPermission();
-      isar = await storage.initDB(null, inspector: kDebugMode);
-      runApp(ProviderScope(child: MyApp(), retry: (retryCount, error) => null));
-      unawaited(_postLaunchInit(storage));
+      Object? startupError;
+      try {
+        isar = await storage.initDB(null, inspector: kDebugMode);
+      } catch (e, st) {
+        AppLogger.log('DB init failed: $e\n$st', logLevel: LogLevel.error);
+        startupError = e;
+      }
+      runApp(
+        startupError != null
+            ? _StartupErrorApp(error: startupError.toString())
+            : ProviderScope(child: MyApp(), retry: (retryCount, error) => null),
+      );
+      if (startupError == null) unawaited(_postLaunchInit(storage));
     },
     (Object error, StackTrace stack) {
       AppLogger.log(
@@ -117,20 +137,52 @@ void main(List<String> args) async {
   );
 }
 
+class _StartupErrorApp extends StatelessWidget {
+  final String error;
+  const _StartupErrorApp({required this.error});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                const Text(
+                  'Failed to start Mangayomi',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                SelectableText(
+                  error,
+                  style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 Future<void> _postLaunchInit(StorageProvider storage) async {
   await AppLogger.init();
   unawaited(MDownloader.initializeIsolatePool(poolSize: 6));
-  final hivePath = (Platform.isIOS || Platform.isMacOS)
-      ? "databases"
-      : p.join("Mangayomi", "databases");
+  final hivePath = isApple ? "databases" : p.join("Mangayomi", "databases");
   await Hive.initFlutter(Platform.isAndroid ? "" : hivePath);
   Hive.registerAdapter(TrackSearchAdapter());
-  if (Platform.isMacOS || Platform.isLinux || Platform.isWindows) {
+  if (isDesktop && !kDebugMode) {
     discordRpc = DiscordRPC(applicationId: "1395040506677039157");
     await discordRpc?.initialize();
   }
   await storage.deleteBtDirectory();
-  await cfResolutionWebviewServer();
+  await webviewServer();
 }
 
 class MyApp extends ConsumerStatefulWidget {
@@ -150,9 +202,7 @@ class _MyAppState extends ConsumerState<MyApp>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    if (!(Platform.isAndroid || Platform.isIOS)) {
-      windowManager.addListener(this);
-    }
+    if (!isMobile) windowManager.addListener(this);
     initializeDateFormatting();
     customDns = ref.read(customDnsStateProvider);
     _checkTrackerRefresh();
@@ -207,18 +257,23 @@ class _MyAppState extends ConsumerState<MyApp>
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       builder: (context, child) {
-        child = BotToastInit()(context, child);
+        final base = BotToastInit()(context, child);
+        final withBackHandler = !isMobile
+            ? _MouseBackButtonHandler(router: router, child: base)
+            : base;
+
         if (!Platform.isLinux) {
           final isUnlocked = ref.watch(appUnlockedStateProvider);
           final lockEnabled = ref.watch(appLockEnabledStateProvider);
           if (lockEnabled && !isUnlocked) {
-            return const AppLockScreen();
+            return Stack(
+              fit: StackFit.expand,
+              children: [withBackHandler, const AppLockScreen()],
+            );
           }
         }
-        if (!(Platform.isAndroid || Platform.isIOS)) {
-          child = _MouseBackButtonHandler(router: router, child: child);
-        }
-        return child;
+
+        return withBackHandler;
       },
       routeInformationParser: router.routeInformationParser,
       routerDelegate: router.routerDelegate,
@@ -231,14 +286,14 @@ class _MyAppState extends ConsumerState<MyApp>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    if (!(Platform.isAndroid || Platform.isIOS)) {
+    if (!isMobile) {
       windowManager.removeListener(this);
       WindowGeometry.save();
     }
     MExtensionServerPlatform(ref).stopServer();
     _linkSubscription?.cancel();
     discordRpc?.destroy();
-    stopCfResolutionWebviewServer();
+    stopwebviewServer();
     AppLogger.dispose();
     super.dispose();
   }

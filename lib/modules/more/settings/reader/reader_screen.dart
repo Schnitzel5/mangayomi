@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:mangayomi/utils/platform_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mangayomi/models/settings.dart';
@@ -28,6 +27,7 @@ class ReaderScreen extends ConsumerWidget {
 
     final cropBorders = ref.watch(cropBordersStateProvider);
     final keepScreenOn = ref.watch(keepScreenOnReaderStateProvider);
+    final autoReadDuplChap = ref.watch(autoReadDuplicateChaptersStateProvider);
     final showPageGaps = ref.watch(showPageGapsStateProvider);
     final webtoonSidePadding = ref.watch(webtoonSidePaddingStateProvider);
     final navigationLayout = ref.watch(readerNavigationLayoutStateProvider);
@@ -366,7 +366,7 @@ class ReaderScreen extends ConsumerWidget {
                 style: TextStyle(fontSize: 11, color: context.secondaryColor),
               ),
             ),
-            if (!(Platform.isAndroid || Platform.isIOS))
+            if (!isMobile)
               SwitchListTile(
                 value: fullScreenReader,
                 title: Text(context.l10n.fullscreen),
@@ -409,6 +409,15 @@ class ReaderScreen extends ConsumerWidget {
               title: Text(context.l10n.show_page_gaps),
               onChanged: (value) {
                 ref.read(showPageGapsStateProvider.notifier).set(value);
+              },
+            ),
+            SwitchListTile(
+              value: autoReadDuplChap,
+              title: Text(context.l10n.mark_duplicate_chapters_read),
+              onChanged: (value) {
+                ref
+                    .read(autoReadDuplicateChaptersStateProvider.notifier)
+                    .set(value);
               },
             ),
             ListTile(

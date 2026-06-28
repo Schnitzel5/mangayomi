@@ -12,7 +12,7 @@ import 'package:mangayomi/modules/more/settings/downloads/providers/downloads_st
 import 'package:mangayomi/providers/l10n_providers.dart';
 import 'package:mangayomi/providers/storage_provider.dart';
 import 'package:mangayomi/modules/manga/download/providers/download_provider.dart';
-import 'package:mangayomi/utils/extensions/chapter.dart';
+import 'package:mangayomi/utils/extensions/chapter_extensions.dart';
 import 'package:mangayomi/utils/extensions/string_extensions.dart';
 import 'package:mangayomi/utils/global_style.dart';
 import 'package:share_plus/share_plus.dart';
@@ -51,15 +51,6 @@ class ChapterPageDownload extends ConsumerWidget {
         ),
       );
     }
-  }
-
-  void _deleteFile(int downloadId) async {
-    for (final entity in await _downloadedFileEntities()) {
-      try {
-        if (entity.existsSync()) entity.deleteSync(recursive: true);
-      } catch (_) {}
-    }
-    chapter.cancelDownloads(downloadId);
   }
 
   Future<List<File>> _downloadedFiles() async {
@@ -174,7 +165,7 @@ class ChapterPageDownload extends ConsumerWidget {
                         if (value == 0) {
                           _sendFile(context);
                         } else if (value == 1) {
-                          _deleteFile(download.id!);
+                          chapter.deleteDownloadedFiles();
                         }
                       },
                       itemBuilder: (context) => [
@@ -285,7 +276,7 @@ class ChapterPageDownload extends ConsumerWidget {
                           downloadId: download.id,
                         );
                       },
-                      icon: Icon(
+                      icon: FaIcon(
                         FontAwesomeIcons.circleDown,
                         color: Theme.of(
                           context,

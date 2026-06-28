@@ -59,7 +59,11 @@ extension StringExtensions on String {
   }
 
   bool isMediaVideo() {
-    return [
+    // Match against the URL path only — query strings (e.g. AnimeGG's
+    // `?for=...`) and fragments must not defeat the suffix check. Use a
+    // leading `.` so e.g. `flashmp4` doesn't accidentally match.
+    final lower = (Uri.tryParse(this)?.path ?? this).toLowerCase();
+    return const [
       "3gp",
       "avi",
       "mpg",
@@ -73,7 +77,16 @@ extension StringExtensions on String {
       "wmv",
       "mkv",
       "mov",
-    ].any((extension) => toLowerCase().endsWith(extension));
+    ].any((extension) => lower.endsWith(".$extension"));
+  }
+}
+
+extension DefaultValueExtension on String? {
+  String? trimmedOrDefault(String? defaultValue) {
+    if (this?.trim().isNotEmpty ?? false) {
+      return this!.trim();
+    }
+    return defaultValue;
   }
 }
 

@@ -11,7 +11,7 @@ import 'package:mangayomi/models/manga.dart';
 import 'package:mangayomi/providers/l10n_providers.dart';
 import 'package:mangayomi/utils/date.dart';
 import 'package:mangayomi/utils/extensions/build_context_extensions.dart';
-import 'package:mangayomi/utils/extensions/chapter.dart';
+import 'package:mangayomi/utils/extensions/chapter_extensions.dart';
 import 'package:mangayomi/utils/extensions/string_extensions.dart';
 import 'package:mangayomi/modules/manga/detail/providers/state_providers.dart';
 import 'package:mangayomi/modules/manga/download/download_page_widget.dart';
@@ -81,10 +81,10 @@ class ChapterListTileWidget extends ConsumerWidget {
           color: Colors.white,
         ),
       ),
-      child: Container(
+      child: Material(
         color: chapterList.contains(chapter)
             ? context.primaryColor.withValues(alpha: 0.4)
-            : null,
+            : Colors.transparent,
         child: GestureDetector(
           onLongPress: () => _handleInteraction(ref),
           onSecondaryTap: () => _handleInteraction(ref),

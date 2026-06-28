@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar_community/isar.dart';
@@ -20,7 +19,7 @@ import 'package:mangayomi/modules/widgets/progress_center.dart';
 import 'package:mangayomi/providers/l10n_providers.dart';
 import 'package:mangayomi/providers/storage_provider.dart';
 import 'package:mangayomi/utils/extensions/build_context_extensions.dart';
-import 'package:mangayomi/utils/extensions/string_extensions.dart';
+import 'package:mangayomi/utils/extensions/chapter_extensions.dart';
 import 'package:path/path.dart' as p;
 
 /// Shows a dialog for deleting selected manga from library and/or device.
@@ -29,8 +28,8 @@ void showDeleteMangaDialog({
   required WidgetRef ref,
   required ItemType itemType,
 }) {
-  Set<int> fromLibList = {};
-  Set<int> downloadedChapsList = {};
+  bool deleteFromLib = false;
+  bool deleteDownloads = false;
   showDialog(
     context: context,
     builder: (context) {
@@ -53,31 +52,17 @@ void showDeleteMangaDialog({
                     children: [
                       ListTileChapterFilter(
                         label: l10n.from_library,
-                        onTap: () {
-                          setState(() {
-                            if (setEquals(fromLibList, mangaIdsList)) {
-                              fromLibList = {};
-                            } else {
-                              fromLibList = {...mangaIdsList};
-                            }
-                          });
-                        },
-                        type: fromLibList.isNotEmpty ? 1 : 0,
+                        onTap: () =>
+                            setState(() => deleteFromLib = !deleteFromLib),
+                        type: deleteFromLib ? 1 : 0,
                       ),
                       ListTileChapterFilter(
                         label: itemType != ItemType.anime
                             ? l10n.downloaded_chapters
                             : l10n.downloaded_episodes,
-                        onTap: () {
-                          setState(() {
-                            if (setEquals(downloadedChapsList, mangaIdsList)) {
-                              downloadedChapsList = {};
-                            } else {
-                              downloadedChapsList = {...mangaIdsList};
-                            }
-                          });
-                        },
-                        type: downloadedChapsList.isNotEmpty ? 1 : 0,
+                        onTap: () =>
+                            setState(() => deleteDownloads = !deleteDownloads),
+                        type: deleteDownloads ? 1 : 0,
                       ),
                     ],
                   ),
@@ -94,12 +79,16 @@ void showDeleteMangaDialog({
                       TextButton(
                         onPressed: () async {
                           // From Library
-                          if (fromLibList.isNotEmpty) {
+                          if (deleteFromLib) {
                             isar.writeTxnSync(() {
                               for (var manga in mangasList) {
                                 if (manga.isLocalArchive ?? false) {
+                                  // Local archives have no remote source, so removing from the
+                                  // library means wiping every related Isar record entirely.
                                   _removeImport(ref, manga);
                                 } else {
+                                  // Regular manga: just unfavourite so it disappears from the
+                                  // library without losing chapter/history data.
                                   manga.favorite = false;
                                   manga.updatedAt =
                                       DateTime.now().millisecondsSinceEpoch;
@@ -109,30 +98,36 @@ void showDeleteMangaDialog({
                             });
                           }
                           // Downloaded Chapters
-                          if (downloadedChapsList.isNotEmpty) {
+                          if (deleteDownloads) {
                             for (var manga in mangasList) {
-                              if (!(manga.isLocalArchive ?? false)) {
-                                String mangaDirectory = "";
-                                if (manga.isLocalArchive ?? false) {
-                                  mangaDirectory = await _deleteImport(
-                                    manga,
-                                    mangaDirectory,
-                                  );
-                                  isar.writeTxnSync(() {
-                                    _removeImport(ref, manga);
-                                  });
-                                } else {
-                                  mangaDirectory = await _deleteDownload(
-                                    manga,
-                                    mangaDirectory,
-                                  );
-                                }
-                                if (mangaDirectory.isNotEmpty) {
-                                  final path = Directory(mangaDirectory);
-                                  if (path.existsSync() &&
-                                      path.listSync().isEmpty) {
-                                    path.deleteSync(recursive: true);
-                                  }
+                              String mangaDirectory = "";
+                              if (manga.isLocalArchive ?? false) {
+                                // For local archives the archive file IS the chapter — there is
+                                // nothing to re-download. So we delete the physical files and
+                                // remove all Isar records, mirroring a full library removal.
+                                mangaDirectory = await _deleteImport(
+                                  manga,
+                                  mangaDirectory,
+                                );
+                                isar.writeTxnSync(() {
+                                  _removeImport(ref, manga);
+                                });
+                              } else {
+                                // Regular manga: delete downloaded files and their download
+                                // records, but leave the manga and chapter metadata intact so
+                                // the user can re-download later.
+                                mangaDirectory = await _deleteDownload(
+                                  manga,
+                                  mangaDirectory,
+                                );
+                              }
+                              // If the manga's base directory is now empty,
+                              // remove it too so we don't leave orphaned folders on disk.
+                              if (mangaDirectory.isNotEmpty) {
+                                final path = Directory(mangaDirectory);
+                                if (path.existsSync() &&
+                                    path.listSync().isEmpty) {
+                                  path.deleteSync(recursive: true);
                                 }
                               }
                             }
@@ -160,6 +155,9 @@ void showDeleteMangaDialog({
   );
 }
 
+/// Removes a local-archive manga and all related records from Isar:
+/// history, updates, downloads, chapters, and the manga itself.
+/// Also notifies the sync provider so the removal is propagated.
 void _removeImport(WidgetRef ref, Manga manga) {
   final provider = ref.read(synchingProvider(syncId: 1).notifier);
   final histories = isar.historys
@@ -190,6 +188,9 @@ void _removeImport(WidgetRef ref, Manga manga) {
   provider.addChangedPart(ActionType.removeItem, manga.id, "{}", false);
 }
 
+/// Deletes the physical archive files (zip/cbz/mp4/epub) for a local-archive
+/// manga from disk. Returns the parent directory path so the caller can clean
+/// up the now-empty folder afterwards.
 Future<String> _deleteImport(Manga manga, String mangaDirectory) async {
   for (var chapter in manga.chapters) {
     final path = chapter.archivePath;
@@ -208,9 +209,12 @@ Future<String> _deleteImport(Manga manga, String mangaDirectory) async {
   return mangaDirectory;
 }
 
+/// Deletes the downloaded chapter files for a regular (non-local-archive)
+/// manga from disk, then cleans up the corresponding Isar download records.
+/// Returns the manga's base directory path so the caller can remove the
+/// folder if it is left empty.
 Future<String> _deleteDownload(Manga manga, String mangaDirectory) async {
-  final storageProvider = StorageProvider();
-  final idsToDelete = <int>{};
+  Directory? mangaDir;
   final downloadedIds = (await isar.downloads.where().idProperty().findAll())
       .toSet();
 
@@ -219,38 +223,11 @@ Future<String> _deleteDownload(Manga manga, String mangaDirectory) async {
   for (var chapter in manga.chapters) {
     if (chapter.id == null || !downloadedIds.contains(chapter.id)) continue;
 
-    final folders = await getAllLocalFolders();
-    for (final folder in folders) {
-      final folderPath = folder.path;
-      if (folderPath == null || folderPath.isEmpty) continue;
-      final mangaDir = Directory(
-        p.join(folderPath, manga.name!.replaceForbiddenCharacters('_')),
-      );
-      final chapterDir = await storageProvider.getMangaChapterDirectory(
-        chapter,
-        mangaMainDirectory: mangaDir,
-      );
-      final chapterName = chapter.name!.replaceForbiddenCharacters(' ');
-      if (mangaDirectory.isEmpty) mangaDirectory = mangaDir.path;
-
-      for (final entity in [
-        File(p.join(mangaDir.path, "${chapter.name}.cbz")),
-        File(p.join(mangaDir.path, "$chapterName.cbz")),
-        File(p.join(mangaDir.path, "$chapterName.mp4")),
-        File(p.join(chapterDir!.path, "$chapterName.html")),
-        chapterDir,
-      ]) {
-        try {
-          if (entity.existsSync()) entity.deleteSync(recursive: true);
-        } catch (_) {}
-      }
+    await chapter.deleteDownloadedFiles();
+    if (mangaDirectory.isEmpty) {
+      mangaDir ??= await StorageProvider().getMangaMainDirectory(chapter);
+      if (mangaDir != null) mangaDirectory = mangaDir.path;
     }
-    idsToDelete.add(chapter.id!);
-  }
-  if (idsToDelete.isNotEmpty) {
-    isar.writeTxnSync(() {
-      isar.downloads.deleteAllSync(idsToDelete.toList());
-    });
   }
   return mangaDirectory;
 }

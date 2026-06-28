@@ -95,6 +95,17 @@ class DownloadIsolatePool {
     );
 
     // Listen for progress messages
+    _listenToTask(receivePort, taskId, onProgress, onComplete, onError);
+    _enqueueTask(task);
+  }
+
+  void _listenToTask(
+    ReceivePort receivePort,
+    String taskId,
+    void Function(DownloadProgress) onProgress,
+    void Function() onComplete,
+    void Function(Exception) onError,
+  ) {
     receivePort.listen((message) {
       if (downloadTaskCancellation[taskId] == true) {
         receivePort.close();
@@ -103,18 +114,13 @@ class DownloadIsolatePool {
 
       if (message is DownloadProgress) {
         onProgress(message);
-      } else if (message is DownloadComplete) {
+      } else if (message is DownloadComplete || message is Exception) {
         downloadTaskCancellation.remove(taskId);
         receivePort.close();
-        onComplete();
-      } else if (message is Exception) {
-        downloadTaskCancellation.remove(taskId);
-        receivePort.close();
-        onError(message);
+        if (message is DownloadComplete) onComplete();
+        if (message is Exception) onError(message);
       }
     });
-
-    _enqueueTask(task);
   }
 
   /// Submit an M3U8 segment download task
@@ -153,24 +159,7 @@ class DownloadIsolatePool {
       sendPort: receivePort.sendPort,
     );
 
-    receivePort.listen((message) {
-      if (downloadTaskCancellation[taskId] == true) {
-        receivePort.close();
-        return;
-      }
-
-      if (message is DownloadProgress) {
-        onProgress(message);
-      } else if (message is DownloadComplete) {
-        downloadTaskCancellation.remove(taskId);
-        receivePort.close();
-        onComplete();
-      } else if (message is Exception) {
-        downloadTaskCancellation.remove(taskId);
-        receivePort.close();
-        onError(message);
-      }
-    });
+    _listenToTask(receivePort, taskId, onProgress, onComplete, onError);
 
     _enqueueTask(task);
   }
@@ -509,9 +498,14 @@ Future<void> _downloadFile(
         var request = Request('GET', Uri.parse(pageUrl.url));
         request.headers.addAll(pageUrl.headers ?? {});
         StreamedResponse response = await client.send(request);
-        if (response.statusCode != 200) {
+        // Accept any 2xx — including 206 Partial Content, which the server
+        // returns when the source extension sends `Range: bytes=0-` on the
+        // streaming request (e.g. AnimeGG). Rejecting 206 here caused 3
+        // retries → silent stall.
+        if (response.statusCode < 200 || response.statusCode >= 300) {
           throw DownloadPoolException(
-            'Failed to download file: ${pageUrl.fileName!}',
+            'Failed to download file: ${pageUrl.fileName!} '
+            '(status ${response.statusCode})',
           );
         }
         int total = response.contentLength ?? 0;
@@ -617,8 +611,12 @@ Future<void> _downloadSegment(
     }
     StreamedResponse response = await _withRetry(() => client.send(request), 3);
 
-    if (response.statusCode != 200) {
-      throw DownloadPoolException('Failed to download segment: ${ts.name}');
+    // Accept any 2xx (including 206 Partial Content) — see comment in
+    // _downloadFile.
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw DownloadPoolException(
+        'Failed to download segment: ${ts.name} (status ${response.statusCode})',
+      );
     }
 
     final sink = file.openWrite();
