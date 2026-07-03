@@ -81,9 +81,9 @@ extension UChapDataPreloadExtensions on UChapDataPreload {
     if (archiveImage != null) {
       imageBytes = archiveImage;
     } else if (isLocale == true && directory != null && index != null) {
-      imageBytes = File(
+      imageBytes = await File(
         p.join(directory!.path, "${padIndex(index!)}.jpg"),
-      ).readAsBytesSync();
+      ).readAsBytes();
     } else {
       File? cachedImage;
       if (pageUrl != null) {
@@ -93,7 +93,7 @@ extension UChapDataPreloadExtensions on UChapDataPreload {
           cachedImage = await _getCachedImageFile(pageUrl!.url);
         }
       }
-      imageBytes = cachedImage?.readAsBytesSync();
+      imageBytes = await cachedImage?.readAsBytes();
     }
     return imageBytes;
   }
@@ -148,15 +148,15 @@ extension UChapDataPreloadExtensions on UChapDataPreload {
 
 Future<File?> _getCachedImageFile(String url, {String? cacheKey}) async {
   try {
+    // Cache files are named exactly by their md5 key, so the path can be
+    // built directly — listing the whole cache directory to find one file
+    // scaled with the cache size.
     final String key = cacheKey ?? keyToMd5(url);
     final Directory cacheImagesDirectory = await StorageProvider()
         .getCacheDirectory('cacheimagemanga');
-    if (cacheImagesDirectory.existsSync()) {
-      await for (final FileSystemEntity file in cacheImagesDirectory.list()) {
-        if (file.path.endsWith(key)) {
-          return File(file.path);
-        }
-      }
+    final file = File(p.join(cacheImagesDirectory.path, key));
+    if (await file.exists()) {
+      return file;
     }
   } catch (_) {
     return null;

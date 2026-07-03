@@ -7,6 +7,7 @@ part 'chapter.g.dart';
 class Chapter {
   Id? id;
 
+  @Index()
   int? mangaId;
 
   String? name;

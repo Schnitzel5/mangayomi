@@ -252,7 +252,10 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
                                 height: 300,
                                 fit: BoxFit.cover,
                               )
-                            : cachedNetworkImage(
+                            // The banner renders at 300 px behind an overlay;
+                            // decode it resized instead of at full cover
+                            // resolution.
+                            : cachedCompressedNetworkImage(
                                 headers: widget.manga!.isLocalArchive!
                                     ? null
                                     : ref.watch(
@@ -270,6 +273,7 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
                                 width: context.width(1),
                                 height: 300,
                                 fit: BoxFit.cover,
+                                maxBytes: 512 << 10,
                               ),
                         Stack(
                           children: [

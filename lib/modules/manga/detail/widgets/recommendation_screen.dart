@@ -6,6 +6,7 @@ import 'package:mangayomi/modules/widgets/custom_extended_image_provider.dart';
 import 'package:mangayomi/modules/widgets/progress_center.dart';
 import 'package:mangayomi/providers/l10n_providers.dart';
 import 'package:mangayomi/services/recommendation.dart';
+import 'package:mangayomi/utils/cached_network.dart';
 import 'package:mangayomi/utils/constant.dart';
 import 'package:mangayomi/utils/extensions/build_context_extensions.dart';
 import 'package:marquee/marquee.dart';
@@ -320,6 +321,9 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
     final imageProvider = CustomExtendedNetworkImageProvider(
       toImgUrl(imageUrl ?? ""),
     );
+    // Decode the 100x150 card at thumbnail resolution; the full-resolution
+    // provider is only handed to the zoom dialog.
+    final thumbnailProvider = coverProvider(toImgUrl(imageUrl ?? ""));
     return Padding(
       padding: const EdgeInsets.all(3),
       child: GestureDetector(
@@ -332,7 +336,10 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(5)),
-              image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+              image: DecorationImage(
+                image: thumbnailProvider,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
         ),

@@ -23,14 +23,21 @@ class GetIsolateService {
   ReceivePort? _receivePort;
   StreamSubscription? _receiveSub;
   SendPort? _sendPort;
+  Future<void>? _starting;
 
+  /// Spawning the isolate opens a second Isar instance and takes noticeable
+  /// time, so it is started lazily on first use instead of blocking app
+  /// launch. Concurrent callers share the same in-flight start.
   Future<void> start() async {
-    if (!_isRunning) {
-      try {
-        await _initGetIsolateService();
-      } catch (_) {
-        await stop();
-      }
+    if (_isRunning) return;
+    final starting = _starting ??= _initGetIsolateService();
+    try {
+      await starting;
+    } catch (_) {
+      await stop();
+      rethrow;
+    } finally {
+      if (identical(_starting, starting)) _starting = null;
     }
   }
 
@@ -161,6 +168,9 @@ class GetIsolateService {
     String? androidProxyServer,
     bool? useLogger,
   }) async {
+    if (_sendPort == null) {
+      await start();
+    }
     if (_sendPort == null) {
       throw Exception('Isolate not running');
     }

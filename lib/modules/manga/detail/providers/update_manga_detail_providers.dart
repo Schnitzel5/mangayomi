@@ -105,6 +105,7 @@ Future<dynamic> updateMangaDetail(
       }
 
       final newChapters = <Chapter>[];
+      final updatedChapters = <Chapter>[];
 
       for (final chap in chaps) {
         final url = chap.url?.trim();
@@ -153,27 +154,42 @@ Future<dynamic> updateMangaDetail(
             ..description = chap.description
             ..downloadSize = chap.downloadSize
             ..duration = chap.duration;
-          await isar.chapters.put(existing);
+          updatedChapters.add(existing);
         }
+      }
+
+      // Batched puts: a full library update runs this per manga, so per-item
+      // awaited puts made it O(manga x chapters) round trips.
+      if (updatedChapters.isNotEmpty) {
+        await isar.chapters.putAll(updatedChapters);
       }
 
       // Insert new chapters oldest-first (API typically returns newest-first).
       if (newChapters.isNotEmpty) {
         final hasExisting = existingChapters.isNotEmpty;
-        for (final chap in newChapters.reversed) {
-          await isar.chapters.put(chap);
+        final orderedNewChapters = newChapters.reversed.toList();
+        await isar.chapters.putAll(orderedNewChapters);
+
+        final updates = <Update>[];
+        for (final chap in orderedNewChapters) {
           await chap.manga.save();
 
           // Only create an Update entry for genuinely new (unread) chapters,
           // so that pre-read cross-scanlator chapters don't spam the updates feed.
           if (hasExisting && !(chap.isRead ?? false)) {
-            final update = Update(
-              mangaId: savedMangaId,
-              chapterName: chap.name,
-              date: now.toString(),
-              updatedAt: now,
-            )..chapter.value = chap;
-            await isar.updates.put(update);
+            updates.add(
+              Update(
+                mangaId: savedMangaId,
+                chapterName: chap.name,
+                date: now.toString(),
+                updatedAt: now,
+              )..chapter.value = chap,
+            );
+          }
+        }
+        if (updates.isNotEmpty) {
+          await isar.updates.putAll(updates);
+          for (final update in updates) {
             await update.chapter.save();
           }
         }

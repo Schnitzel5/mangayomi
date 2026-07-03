@@ -49,7 +49,7 @@ final class DownloadedChapterIdsProvider
 }
 
 String _$downloadedChapterIdsHash() =>
-    r'ff409df987e776e8c150e541c5aa48b1d5f9e9b9';
+    r'2697cdf0c52c2efa41ef00ba4b4af42ad6029100';
 
 /// Pre-fetches all manga IDs that have at least one tracking entry.
 
@@ -59,8 +59,9 @@ final trackedMangaIdsProvider = TrackedMangaIdsProvider._();
 /// Pre-fetches all manga IDs that have at least one tracking entry.
 
 final class TrackedMangaIdsProvider
-    extends $FunctionalProvider<Set<int>, Set<int>, Set<int>>
-    with $Provider<Set<int>> {
+    extends
+        $FunctionalProvider<AsyncValue<Set<int>>, Set<int>, Stream<Set<int>>>
+    with $FutureModifier<Set<int>>, $StreamProvider<Set<int>> {
   /// Pre-fetches all manga IDs that have at least one tracking entry.
   TrackedMangaIdsProvider._()
     : super(
@@ -78,24 +79,16 @@ final class TrackedMangaIdsProvider
 
   @$internal
   @override
-  $ProviderElement<Set<int>> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $StreamProviderElement<Set<int>> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
 
   @override
-  Set<int> create(Ref ref) {
+  Stream<Set<int>> create(Ref ref) {
     return trackedMangaIds(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(Set<int> value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<Set<int>>(value),
-    );
   }
 }
 
-String _$trackedMangaIdsHash() => r'8fd052ae3ff4e9fe47e66d5e24cd57233aa03d0a';
+String _$trackedMangaIdsHash() => r'4cdaafe820da131299466a7fb09e933e403a9333';
 
 /// Filters and sorts a list of [Manga] based on library filter/sort settings.
 
@@ -200,7 +193,7 @@ final class FilteredLibraryMangaProvider
 }
 
 String _$filteredLibraryMangaHash() =>
-    r'17c6f370c3120277379c3bbb22c31a19ff028682';
+    r'52c0e5b7e6034ece2dc2249060d0983c74d9b5aa';
 
 /// Filters and sorts a list of [Manga] based on library filter/sort settings.
 

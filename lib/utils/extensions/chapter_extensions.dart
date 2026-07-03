@@ -106,10 +106,8 @@ extension ChapterExtension on Chapter {
     );
 
     final tracks = isar.tracks
-        .filter()
-        .idIsNotNull()
-        .itemTypeEqualTo(manga.itemType)
-        .mangaIdEqualTo(manga.id!)
+        .where()
+        .mangaIdItemTypeEqualTo(manga.id!, manga.itemType)
         .findAllSync();
 
     for (var track in tracks) {

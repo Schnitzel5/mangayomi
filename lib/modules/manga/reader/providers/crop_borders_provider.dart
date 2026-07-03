@@ -33,14 +33,20 @@ class ImageCropIsolate {
   Isolate? _rustIsolate;
   ReceivePort? _receivePort;
   SendPort? _sendPort;
+  Future<void>? _starting;
 
+  /// Started lazily on first crop request (spawning re-initializes RustLib in
+  /// the new isolate, which is too expensive for app launch). Concurrent
+  /// callers share the same in-flight start.
   Future<void> start() async {
-    if (!_isRunning) {
-      try {
-        await _initRustIsolate();
-      } catch (_) {
-        await stop();
-      }
+    if (_isRunning) return;
+    final starting = _starting ??= _initRustIsolate();
+    try {
+      await starting;
+    } catch (_) {
+      await stop();
+    } finally {
+      if (identical(_starting, starting)) _starting = null;
     }
   }
 

@@ -14,10 +14,6 @@ import 'package:mangayomi/utils/cached_network.dart';
 import 'package:mangayomi/utils/extensions/build_context_extensions.dart';
 import 'package:mangayomi/utils/language.dart';
 
-final extensionListTileWidget = Provider.family<Widget, Source>((ref, source) {
-  return ExtensionListTileWidget(source: source);
-});
-
 class ExtensionListTileWidget extends ConsumerStatefulWidget {
   final Source source;
   const ExtensionListTileWidget({super.key, required this.source});

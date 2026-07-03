@@ -423,9 +423,14 @@ class _MangaChapterPageGalleryState
                             scrollDirection: isHorizontalContinuous
                                 ? Axis.horizontal
                                 : Axis.vertical,
+                            // Keep the *built* (decoded, in-memory) range small
+                            // and constant; pagePreloadAmount only drives the
+                            // network prefetch in _prefetchPagesInOrder. Tying
+                            // this to pagePreloadAmount pinned up to 20 screens
+                            // of decoded pages at once (OOM on webtoons).
                             minCacheExtent: isHorizontalContinuous
-                                ? pagePreloadAmount * context.width(1)
-                                : pagePreloadAmount * context.height(1),
+                                ? 1.5 * context.width(1)
+                                : 1.5 * context.height(1),
                             initialScrollIndex: _readerController
                                 .getPageIndex(),
                             physics: const ClampingScrollPhysics(),
@@ -1173,18 +1178,25 @@ class _MangaChapterPageGalleryState
     if (needsReload) {
       final isLocalArchive = (currentChapter.archivePath ?? '').isNotEmpty;
       final storageProvider = StorageProvider();
-      final mangaDirectory = await storageProvider.getMangaMainDirectory(currentChapter);
+      final mangaDirectory = await storageProvider.getMangaMainDirectory(
+        currentChapter,
+      );
       final archivePath = isLocalArchive
           ? currentChapter.archivePath
-          : (mangaDirectory != null ? p.join(mangaDirectory.path, "${currentChapter.name}.cbz") : null);
+          : (mangaDirectory != null
+                ? p.join(mangaDirectory.path, "${currentChapter.name}.cbz")
+                : null);
 
       if (archivePath != null && await File(archivePath).exists()) {
         try {
-          final local = await ref.read(getArchiveDataFromFileProvider(archivePath).future);
+          final local = await ref.read(
+            getArchiveDataFromFileProvider(archivePath).future,
+          );
           final images = local.images ?? [];
           int imgIdx = 0;
           for (final page in pages) {
-            if (page.chapter?.id == currentChapter.id && !page.isTransitionPage) {
+            if (page.chapter?.id == currentChapter.id &&
+                !page.isTransitionPage) {
               if (imgIdx < images.length) {
                 page.archiveImage = images[imgIdx].image;
               }
@@ -1233,11 +1245,7 @@ class _MangaChapterPageGalleryState
       }
     }
 
-    await Future.wait([
-      worker(),
-      worker(),
-      worker(),
-    ]);
+    await Future.wait([worker(), worker(), worker()]);
   }
 
   Future<void> _onPageChanged(int index) async {

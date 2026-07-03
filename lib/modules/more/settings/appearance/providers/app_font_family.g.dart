@@ -41,7 +41,7 @@ final class AppFontFamilyProvider
   }
 }
 
-String _$appFontFamilyHash() => r'edc7d34d3b1aa149fdbd95fa0b07d9746b7279b1';
+String _$appFontFamilyHash() => r'1daec4eafaacafe2226d2f3d3d45e1130f0e465f';
 
 abstract class _$AppFontFamily extends $Notifier<String?> {
   String? build();
