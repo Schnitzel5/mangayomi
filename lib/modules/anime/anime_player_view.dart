@@ -1962,6 +1962,9 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
     return Stack(
       children: [
         Video(
+          pip: const PipConfig(
+            autoEnter: true
+          ),
           subtitleViewConfiguration: SubtitleViewConfiguration(
             visible: false,
             style: subtileTextStyle(ref),
