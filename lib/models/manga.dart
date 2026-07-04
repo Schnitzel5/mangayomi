@@ -29,6 +29,7 @@ class Manga {
 
   List<String>? genre;
 
+  @Index(composite: [CompositeIndex('itemType')])
   bool? favorite;
 
   String? source;

@@ -8,8 +8,10 @@ part 'history.g.dart';
 class History {
   Id? id;
 
+  @Index()
   int? mangaId;
 
+  @Index()
   int? chapterId;
 
   bool? isManga;

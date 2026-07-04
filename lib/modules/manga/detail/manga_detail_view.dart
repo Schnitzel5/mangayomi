@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:draggable_menu/draggable_menu.dart';
@@ -14,12 +13,15 @@ import 'package:mangayomi/models/category.dart';
 import 'package:mangayomi/models/chapter.dart';
 import 'package:mangayomi/models/download.dart';
 import 'package:mangayomi/models/manga.dart';
+import 'package:mangayomi/models/settings.dart';
 import 'package:mangayomi/models/track.dart';
 import 'package:mangayomi/models/track_preference.dart';
 import 'package:mangayomi/models/track_search.dart';
 import 'package:mangayomi/modules/library/library_screen.dart';
+import 'package:mangayomi/modules/library/providers/file_scanner.dart';
 import 'package:mangayomi/modules/library/providers/library_filter_provider.dart';
 import 'package:mangayomi/modules/library/providers/local_archive.dart';
+import 'package:mangayomi/modules/manga/detail/providers/export_metadata.dart';
 import 'package:mangayomi/modules/manga/detail/providers/track_state_providers.dart';
 import 'package:mangayomi/modules/manga/detail/widgets/tracker_search_widget.dart';
 import 'package:mangayomi/modules/manga/detail/widgets/tracker_widget.dart';
@@ -28,6 +30,7 @@ import 'package:mangayomi/utils/extensions/manga_extensions.dart';
 import 'package:mangayomi/utils/extensions/chapter_extensions.dart';
 import 'package:mangayomi/modules/more/providers/algorithm_weights_state_provider.dart';
 import 'package:mangayomi/modules/more/settings/appearance/providers/pure_black_dark_mode_state_provider.dart';
+import 'package:mangayomi/modules/more/settings/downloads/providers/downloads_state_provider.dart';
 import 'package:mangayomi/modules/more/settings/track/widgets/track_listile.dart';
 import 'package:mangayomi/modules/tracker_library/tracker_library_screen.dart';
 import 'package:mangayomi/modules/widgets/bottom_select_bar.dart';
@@ -36,7 +39,6 @@ import 'package:mangayomi/modules/widgets/custom_draggable_tabbar.dart';
 import 'package:mangayomi/modules/widgets/custom_extended_image_provider.dart';
 import 'package:mangayomi/providers/l10n_providers.dart';
 import 'package:mangayomi/providers/storage_provider.dart';
-import 'package:mangayomi/services/http/m_client.dart';
 import 'package:mangayomi/utils/extensions/string_extensions.dart';
 import 'package:mangayomi/utils/riverpod.dart';
 import 'package:mangayomi/utils/utils.dart';
@@ -154,6 +156,77 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
     );
   }
 
+  Future<void> _downloadChaptersWithDestination(
+    BuildContext context,
+    List<Chapter> chapters,
+  ) async {
+    final chaptersToDownload = chapters.where((chapter) {
+      final entry = isar.downloads
+          .filter()
+          .idEqualTo(chapter.id)
+          .findFirstSync();
+      return entry == null || !entry.isDownload!;
+    }).toList();
+    if (chaptersToDownload.isEmpty) return;
+
+    final shouldAsk = ref.read(askDownloadDestinationStateProvider);
+    if (!shouldAsk) {
+      await _queueDownloads(
+        chaptersToDownload,
+        localFolder: await getDownloadLocalFolder(),
+      );
+      return;
+    }
+
+    final folders = await getAllLocalFolders();
+    if (folders.isEmpty || !context.mounted) return;
+    if (folders.length == 1) {
+      await _queueDownloads(chaptersToDownload, localFolder: folders.first);
+      return;
+    }
+
+    final selectedFolder = await _showDownloadDestinationDialog(
+      context,
+      folders,
+    );
+    if (selectedFolder == null) return;
+    await _queueDownloads(chaptersToDownload, localFolder: selectedFolder);
+  }
+
+  Future<void> _queueDownloads(
+    List<Chapter> chapters, {
+    LocalFolder? localFolder,
+  }) async {
+    for (final chapter in chapters) {
+      await ref.read(addDownloadToQueueProvider(chapter: chapter).future);
+    }
+    ref.read(processDownloadsProvider(localFolder: localFolder));
+  }
+
+  Future<LocalFolder?> _showDownloadDestinationDialog(
+    BuildContext context,
+    List<LocalFolder> folders,
+  ) {
+    return showDialog<LocalFolder>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(context.l10n.select_download_destination),
+        children: folders
+            .map(
+              (folder) => SimpleDialogOption(
+                onPressed: () => Navigator.pop(context, folder),
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(folder.name ?? ""),
+                  subtitle: Text(folder.path ?? ""),
+                ),
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+
   Widget _buildWidget({required List<Chapter> chapters}) {
     final chapterList = ref.watch(chaptersListStateProvider);
     final isLongPressed = ref.watch(isLongPressedStateProvider);
@@ -179,7 +252,10 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
                                 height: 300,
                                 fit: BoxFit.cover,
                               )
-                            : cachedNetworkImage(
+                            // The banner renders at 300 px behind an overlay;
+                            // decode it resized instead of at full cover
+                            // resolution.
+                            : cachedCompressedNetworkImage(
                                 headers: widget.manga!.isLocalArchive!
                                     ? null
                                     : ref.watch(
@@ -197,6 +273,7 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
                                 width: context.width(1),
                                 height: 300,
                                 fit: BoxFit.cover,
+                                maxBytes: 512 << 10,
                               ),
                         Stack(
                           children: [
@@ -382,9 +459,10 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
                                   ),
                                 ];
                               },
-                              onSelected: (value) {
+                              onSelected: (value) async {
                                 final chapters = widget.manga!
                                     .getSortedFilteredChapters();
+                                final chaptersToDownload = <Chapter>[];
                                 if (value == 0 ||
                                     value == 1 ||
                                     value == 2 ||
@@ -395,18 +473,8 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
                                       );
                                   if (lastChapterReadIndex == -1 ||
                                       chapters.length == 1) {
-                                    final chapter = chapters.first;
-                                    final entry = isar.downloads
-                                        .filter()
-                                        .idEqualTo(chapter.id)
-                                        .findFirstSync();
-                                    if (entry == null || !entry.isDownload!) {
-                                      ref.watch(
-                                        addDownloadToQueueProvider(
-                                          chapter: chapter,
-                                        ),
-                                      );
-                                      ref.watch(processDownloadsProvider());
+                                    if (chapters.isNotEmpty) {
+                                      chaptersToDownload.add(chapters.first);
                                     }
                                   } else {
                                     final length = switch (value) {
@@ -423,69 +491,23 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
                                               null) {
                                         final chapter =
                                             chapters[lastChapterReadIndex + i];
-                                        final entry = isar.downloads
-                                            .filter()
-                                            .idEqualTo(chapter.id)
-                                            .findFirstSync();
-                                        if (entry == null ||
-                                            !entry.isDownload!) {
-                                          ref.watch(
-                                            addDownloadToQueueProvider(
-                                              chapter: chapter,
-                                            ),
-                                          );
-                                        }
+                                        chaptersToDownload.add(chapter);
                                       }
                                     }
-                                    ref.watch(processDownloadsProvider());
                                   }
                                 } else if (value == 4) {
-                                  final List<Chapter> unreadChapters = widget
-                                      .manga!
-                                      .getSortedFilteredChapters()
-                                      .where(
-                                        (element) => !(element.isRead ?? false),
-                                      )
-                                      .toList();
-                                  isar.chapters
-                                      .filter()
-                                      .idIsNotNull()
-                                      .mangaIdEqualTo(widget.manga!.id!)
-                                      .isReadEqualTo(false)
-                                      .findAllSync();
-                                  for (var chapter in unreadChapters) {
-                                    final entry = isar.downloads
-                                        .filter()
-                                        .idEqualTo(chapter.id)
-                                        .findFirstSync();
-                                    if (entry == null || !entry.isDownload!) {
-                                      ref.watch(
-                                        addDownloadToQueueProvider(
-                                          chapter: chapter,
-                                        ),
-                                      );
-                                    }
-                                  }
-                                  ref.watch(processDownloadsProvider());
+                                  chaptersToDownload.addAll(
+                                    chapters.where(
+                                      (element) => !(element.isRead ?? false),
+                                    ),
+                                  );
                                 } else if (value == 5) {
-                                  final List<Chapter> allChapters = widget
-                                      .manga!
-                                      .getSortedFilteredChapters();
-                                  for (var chapter in allChapters) {
-                                    final entry = isar.downloads
-                                        .filter()
-                                        .idEqualTo(chapter.id)
-                                        .findFirstSync();
-                                    if (entry == null || !entry.isDownload!) {
-                                      ref.watch(
-                                        addDownloadToQueueProvider(
-                                          chapter: chapter,
-                                        ),
-                                      );
-                                    }
-                                  }
-                                  ref.watch(processDownloadsProvider());
+                                  chaptersToDownload.addAll(chapters);
                                 }
+                                await _downloadChaptersWithDestination(
+                                  context,
+                                  chaptersToDownload,
+                                );
                               },
                             ),
                           ],
@@ -525,7 +547,7 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
                                 ),
                                 PopupMenuItem<int>(
                                   value: 6,
-                                  child: const Text('Mass migration'),
+                                  child: Text(l10n.mass_migration_title),
                                 ),
                                 if (!isLocalArchive)
                                   PopupMenuItem<int>(
@@ -591,13 +613,6 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
                                     final result =
                                         await FilePicker.getDirectoryPath();
                                     if (result != null) {
-                                      final client = MClient.init();
-                                      final coverFile = File(
-                                        p.join(result, "cover.jpg"),
-                                      );
-                                      final metadataFile = File(
-                                        p.join(result, "metadata.json"),
-                                      );
                                       final headers =
                                           widget.manga!.isLocalArchive!
                                           ? null
@@ -609,33 +624,15 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
                                                     widget.manga!.sourceId,
                                               ),
                                             );
-                                      final imageUrl = toImgUrl(
-                                        widget.manga!.customCoverFromTracker ??
-                                            widget.manga!.imageUrl ??
-                                            "",
-                                      );
-                                      final res = await client.get(
-                                        Uri.parse(imageUrl),
+                                      await exportMangaMetadata(
+                                        manga: widget.manga!,
+                                        directory: Directory(result),
                                         headers: headers,
-                                      );
-                                      await coverFile.writeAsBytes(
-                                        res.bodyBytes,
-                                      );
-                                      await metadataFile.writeAsString(
-                                        jsonEncode({
-                                          "name": widget.manga!.name,
-                                          "description":
-                                              widget.manga!.description,
-                                          "artist": widget.manga!.artist,
-                                          "author": widget.manga!.author,
-                                          "genre": widget.manga!.genre,
-                                          "status": widget.manga!.status.index,
-                                        }),
                                       );
                                       botToast(l10n.exported);
                                     }
                                   } catch (e) {
-                                    botToast("Failed to export metadata: $e");
+                                    botToast(l10n.failed_to_export_metadata(e));
                                   }
                                   break;
                                 case 6:
@@ -941,22 +938,11 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
                   if (!isLocalArchive && isDownloaded.isEmpty)
                     BottomSelectButton(
                       icon: Icon(Icons.download_outlined, color: color),
-                      onPressed: () {
-                        for (var chapter in ref.watch(
-                          chaptersListStateProvider,
-                        )) {
-                          final entries = isar.downloads
-                              .filter()
-                              .idEqualTo(chapter.id)
-                              .findAllSync();
-                          if (entries.isEmpty || !entries.first.isDownload!) {
-                            ref.read(
-                              addDownloadToQueueProvider(chapter: chapter),
-                            );
-                          }
-                        }
-                        ref.watch(processDownloadsProvider());
-
+                      onPressed: () async {
+                        await _downloadChaptersWithDestination(
+                          context,
+                          ref.read(chaptersListStateProvider),
+                        );
                         ref
                             .read(isLongPressedStateProvider.notifier)
                             .update(false);

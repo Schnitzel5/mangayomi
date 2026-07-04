@@ -1,4 +1,3 @@
-import 'package:google_fonts/google_fonts.dart';
 import 'package:mangayomi/main.dart';
 import 'package:mangayomi/models/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -8,14 +7,10 @@ part 'app_font_family.g.dart';
 class AppFontFamily extends _$AppFontFamily {
   @override
   String? build() {
-    final fontFamily = isar.settings.getSync(227)!.appFontFamily;
-    if (fontFamily == null) return null;
-
-    return GoogleFonts.asMap().entries
-        .toList()
-        .firstWhere((element) => element.value().fontFamily! == fontFamily)
-        .value()
-        .fontFamily;
+    // The stored value already is the resolved GoogleFonts fontFamily;
+    // scanning GoogleFonts.asMap() to look it up constructed a TextStyle for
+    // every catalog font (~1500) on the theme path just to return the input.
+    return isar.settings.getSync(227)!.appFontFamily;
   }
 
   void set(String? fontFamily) {

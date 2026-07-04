@@ -11,7 +11,7 @@ part 'library_filter_provider.g.dart';
 @riverpod
 Stream<Set<int>> downloadedChapterIds(Ref ref) {
   return isar.downloads
-      .filter()
+      .where()
       .isDownloadEqualTo(true)
       .watch(fireImmediately: true)
       .map((list) => list.map((d) => d.id).whereType<int>().toSet());
@@ -19,9 +19,11 @@ Stream<Set<int>> downloadedChapterIds(Ref ref) {
 
 /// Pre-fetches all manga IDs that have at least one tracking entry.
 @riverpod
-Set<int> trackedMangaIds(Ref ref) {
-  final tracks = isar.tracks.where().findAllSync();
-  return tracks.map((t) => t.mangaId).whereType<int>().toSet();
+Stream<Set<int>> trackedMangaIds(Ref ref) {
+  return isar.tracks
+      .where()
+      .watch(fireImmediately: true)
+      .map((list) => list.map((t) => t.mangaId).whereType<int>().toSet());
 }
 
 /// Filters and sorts a list of [Manga] based on library filter/sort settings.
@@ -42,7 +44,8 @@ List<Manga> filteredLibraryManga(
 }) {
   final downloadedIds =
       ref.watch(downloadedChapterIdsProvider).asData?.value ?? const <int>{};
-  final trackedIds = ref.watch(trackedMangaIdsProvider);
+  final trackedIds =
+      ref.watch(trackedMangaIdsProvider).asData?.value ?? const <int>{};
 
   List<Manga> mangas;
 
@@ -115,32 +118,33 @@ List<Manga> filteredLibraryManga(
     }).toList();
   }
 
-  // Sort
-  mangas.sort((a, b) {
-    switch (sortType) {
-      case 0:
-        return a.name!.compareTo(b.name!);
-      case 1:
-        return a.lastRead!.compareTo(b.lastRead!);
-      case 2:
-        return a.lastUpdate?.compareTo(b.lastUpdate ?? 0) ?? 0;
-      case 3:
-        return a.chapters
-            .where((e) => !e.isRead!)
-            .length
-            .compareTo(b.chapters.where((e) => !e.isRead!).length);
-      case 4:
-        return a.chapters.length.compareTo(b.chapters.length);
-      case 5:
-        return (a.chapters.lastOrNull?.dateUpload ?? "").compareTo(
-          b.chapters.lastOrNull?.dateUpload ?? "",
-        );
-      case 6:
-        return a.dateAdded?.compareTo(b.dateAdded ?? 0) ?? 0;
-      default:
-        return 0;
-    }
-  });
+  // Sort. Chapter-derived keys (unread count, chapter count, last upload) are
+  // computed once per manga up front — computing them inside the comparator
+  // traverses the IsarLinks O(n log n) times.
+  switch (sortType) {
+    case 0:
+      mangas.sort((a, b) => a.name!.compareTo(b.name!));
+    case 1:
+      mangas.sort((a, b) => a.lastRead!.compareTo(b.lastRead!));
+    case 2:
+      mangas.sort((a, b) => a.lastUpdate?.compareTo(b.lastUpdate ?? 0) ?? 0);
+    case 3:
+      final unreadCount = {
+        for (final m in mangas)
+          m.id: m.chapters.where((e) => !e.isRead!).length,
+      };
+      mangas.sort((a, b) => unreadCount[a.id]!.compareTo(unreadCount[b.id]!));
+    case 4:
+      final chapterCount = {for (final m in mangas) m.id: m.chapters.length};
+      mangas.sort((a, b) => chapterCount[a.id]!.compareTo(chapterCount[b.id]!));
+    case 5:
+      final lastUpload = {
+        for (final m in mangas) m.id: m.chapters.lastOrNull?.dateUpload ?? "",
+      };
+      mangas.sort((a, b) => lastUpload[a.id]!.compareTo(lastUpload[b.id]!));
+    case 6:
+      mangas.sort((a, b) => a.dateAdded?.compareTo(b.dateAdded ?? 0) ?? 0);
+  }
 
   return mangas;
 }

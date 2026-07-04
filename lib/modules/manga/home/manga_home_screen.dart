@@ -710,7 +710,7 @@ class _MangaHomeScreenState extends ConsumerState<MangaHomeScreen> {
                                 color: context.secondaryColor,
                               ),
                             ),
-                            const Text("Webview"),
+                            Text(context.l10n.webview),
                           ],
                         ),
                       ],

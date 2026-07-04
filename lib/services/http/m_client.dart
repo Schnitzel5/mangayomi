@@ -16,6 +16,7 @@ import 'package:mangayomi/utils/log/log.dart';
 import 'package:mangayomi/services/http/rhttp/rhttp.dart' as rhttp;
 import 'package:mangayomi/services/http/doh/doh_resolver.dart';
 import 'package:mangayomi/services/http/doh/doh_providers.dart';
+import 'package:mangayomi/utils/localized_message.dart';
 
 class MClient {
   MClient();
@@ -341,7 +342,11 @@ Future<void> webviewServer() async {
         "Couldn't start Cloudflare Resolution Webview Server: $e\n$st",
       );
     }
-    botToast("Couldn't start Cloudflare Resolution Webview Server.");
+    botToast(
+      localizedMessage(
+        (l10n) => l10n.cloudflare_resolution_webview_server_start_failed,
+      ),
+    );
   }
 }
 
