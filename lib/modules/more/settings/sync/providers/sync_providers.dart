@@ -16,6 +16,11 @@ class Synching extends _$Synching {
     return isar.syncPreferences.getSync(syncId!) ?? SyncPreference(syncId: 1);
   }
 
+  void _refreshLiveSync() {
+    ref.invalidateSelf();
+    ref.invalidate(syncServerProvider(syncId: syncId!));
+  }
+
   void login(String server, String email, String authToken) {
     isar.writeTxnSync(() {
       isar.syncPreferences.putSync(
@@ -25,16 +30,14 @@ class Synching extends _$Synching {
           ..authToken = authToken,
       );
     });
-    ref.invalidateSelf();
-    ref.invalidate(syncServerProvider(syncId: syncId!));
+    _refreshLiveSync();
   }
 
   void logout() {
     isar.writeTxnSync(() {
       isar.syncPreferences.putSync(state..authToken = null);
     });
-    ref.invalidateSelf();
-    ref.invalidate(syncServerProvider(syncId: syncId!));
+    _refreshLiveSync();
   }
 
   void setLastSyncManga(int timestamp) {
@@ -59,12 +62,14 @@ class Synching extends _$Synching {
     isar.writeTxnSync(() {
       isar.syncPreferences.putSync(state..server = server);
     });
+    _refreshLiveSync();
   }
 
   void setSyncOn(bool value) {
     isar.writeTxnSync(() {
       isar.syncPreferences.putSync(state..syncOn = value);
     });
+    _refreshLiveSync();
   }
 
   void setAutoSyncFrequency(int value) {
@@ -78,21 +83,21 @@ class Synching extends _$Synching {
     isar.writeTxnSync(() {
       isar.syncPreferences.putSync(state..syncHistories = value);
     });
-    ref.invalidateSelf();
+    _refreshLiveSync();
   }
 
   void setSyncUpdates(bool value) {
     isar.writeTxnSync(() {
       isar.syncPreferences.putSync(state..syncUpdates = value);
     });
-    ref.invalidateSelf();
+    _refreshLiveSync();
   }
 
   void setSyncSettings(bool value) {
     isar.writeTxnSync(() {
       isar.syncPreferences.putSync(state..syncSettings = value);
     });
-    ref.invalidateSelf();
+    _refreshLiveSync();
   }
 
   List<ChangedPart> getAllChangedParts() {
