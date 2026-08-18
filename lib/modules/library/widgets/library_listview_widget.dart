@@ -94,7 +94,7 @@ class LibraryListViewWidget extends StatelessWidget {
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 10,
                                     ),
-                                    child: Text(entry.name!),
+                                    child: Text(entry.displayedName!),
                                   ),
                                 ),
                               ],

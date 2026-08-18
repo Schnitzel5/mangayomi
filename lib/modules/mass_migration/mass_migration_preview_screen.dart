@@ -144,7 +144,7 @@ class _MassMigrationPreviewScreenState
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        manga.name ??
+                                        manga.displayedName ??
                                             l10n.mass_migration_unknown_title,
                                         style: Theme.of(context)
                                             .textTheme

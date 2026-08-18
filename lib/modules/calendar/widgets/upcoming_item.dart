@@ -47,7 +47,7 @@ class UpcomingItem extends ConsumerWidget {
               // Title
               Expanded(
                 child: Text(
-                  manga.name ?? '',
+                  manga.displayedName ?? '',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodyMedium?.copyWith(

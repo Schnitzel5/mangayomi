@@ -12,17 +12,24 @@ Stream<List<History>> getAllHistoryStream(
   Ref ref, {
   required ItemType itemType,
   String search = "",
-}) async* {
+}) {
+  final mangaSub = isar.mangas.watchLazy().listen((_) => ref.invalidateSelf());
+  ref.onDispose(mangaSub.cancel);
   // idIsNotNull() removed — every Isar document has a non-null id.
   // The itemType hash-index on History + the link traversal does the filtering.
-  yield* isar.historys
+  return isar.historys
       .filter()
       .chapter(
         (q) => q.manga(
           (q) => q
               .itemTypeEqualTo(itemType)
               .and()
-              .nameContains(search, caseSensitive: false),
+              .group(
+                (q) => q
+                    .nameContains(search, caseSensitive: false)
+                    .or()
+                    .displayTitleContains(search, caseSensitive: false),
+              ),
         ),
       )
       .watch(fireImmediately: true);
@@ -33,15 +40,22 @@ Stream<List<Update>> getAllUpdateStream(
   Ref ref, {
   required ItemType itemType,
   String search = "",
-}) async* {
-  yield* isar.updates
+}) {
+  final mangaSub = isar.mangas.watchLazy().listen((_) => ref.invalidateSelf());
+  ref.onDispose(mangaSub.cancel);
+  return isar.updates
       .filter()
       .chapter(
         (q) => q.manga(
           (q) => q
               .itemTypeEqualTo(itemType)
               .and()
-              .nameContains(search, caseSensitive: false),
+              .group(
+                (q) => q
+                    .nameContains(search, caseSensitive: false)
+                    .or()
+                    .displayTitleContains(search, caseSensitive: false),
+              ),
         ),
       )
       .watch(fireImmediately: true);

@@ -9,6 +9,14 @@ class Manga {
 
   String? name;
 
+  String? titleEnglish;
+
+  String? titleRomaji;
+
+  String? titleNative;
+
+  String? displayTitle;
+
   String? link;
 
   String? imageUrl;
@@ -62,6 +70,9 @@ class Manga {
   @Backlink(to: "manga")
   final chapters = IsarLinks<Chapter>();
 
+  @ignore
+  String? get displayedName => displayTitle ?? name;
+
   Manga({
     this.id = Isar.autoIncrement,
     required this.source,
@@ -108,6 +119,10 @@ class Manga {
     lastUpdate = json['lastUpdate'];
     link = json['link'];
     name = json['name'];
+    titleEnglish = json['titleEnglish'];
+    titleRomaji = json['titleRomaji'];
+    titleNative = json['titleNative'];
+    displayTitle = json['displayTitle'];
     source = json['source'];
     status = Status.values[json['status']];
     customCoverFromTracker = json['customCoverFromTracker'];
@@ -134,6 +149,10 @@ class Manga {
     'lastUpdate': lastUpdate,
     'link': link,
     'name': name,
+    'titleEnglish': titleEnglish,
+    'titleRomaji': titleRomaji,
+    'titleNative': titleNative,
+    'displayTitle': displayTitle,
     'source': source,
     'status': status.index,
     'customCoverFromTracker': customCoverFromTracker,

@@ -1813,7 +1813,7 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
     return TvPlayerControls(
       player: _player,
       revealControls: _revealControls,
-      title: widget.episode.manga.value?.name ?? '',
+      title: widget.episode.manga.value?.displayedName ?? '',
       episodeLabel: widget.episode.name ?? '',
       // Direct pop, not maybePop: the on-screen back arrow always exits the
       // player, bypassing the PopScope that makes the remote Back hide the
@@ -2242,7 +2242,7 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
               title: SizedBox(
                 width: context.width(0.8),
                 child: Text(
-                  widget.episode.manga.value!.name!,
+                  widget.episode.manga.value!.displayedName!,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,

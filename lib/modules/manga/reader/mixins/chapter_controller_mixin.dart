@@ -42,7 +42,7 @@ mixin ChapterControllerMixin {
 
   Settings getIsarSetting() => isar.settings.getSync(227)!;
 
-  String getMangaName() => getManga().name!;
+  String getMangaName() => getManga().displayedName!;
   String getSourceName() => getManga().source!;
   String getChapterTitle() => chapter.name!;
 

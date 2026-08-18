@@ -64,6 +64,12 @@ class Settings {
 
   bool? incognitoMode;
 
+  bool? enableMetadataFetch;
+
+  String? metadataDomain;
+
+  bool? metadataMergeGenres;
+
   List<ChapterPageurls>? chapterPageUrlsList;
 
   bool? showPagesNumber;
@@ -446,6 +452,9 @@ class Settings {
     this.themeIsDark = false,
     this.followSystemTheme = false,
     this.incognitoMode = false,
+    this.enableMetadataFetch = false,
+    this.metadataDomain,
+    this.metadataMergeGenres = true,
     this.chapterPageUrlsList,
     this.showPagesNumber = true,
     this.chapterPageIndexList,
@@ -707,6 +716,9 @@ class Settings {
     flexSchemeColorIndex = json['flexSchemeColorIndex'];
     id = json['id'];
     incognitoMode = json['incognitoMode'];
+    enableMetadataFetch = json['enableMetadataFetch'];
+    metadataDomain = json['metadataDomain'];
+    metadataMergeGenres = json['metadataMergeGenres'];
     libraryDownloadedChapters = json['libraryDownloadedChapters'];
     libraryFilterAnimeBookMarkedType = json['libraryFilterAnimeBookMarkedType'];
     libraryFilterAnimeDownloadType = json['libraryFilterAnimeDownloadType'];
@@ -1011,6 +1023,9 @@ class Settings {
     'flexSchemeColorIndex': flexSchemeColorIndex,
     'id': id,
     'incognitoMode': incognitoMode,
+    'enableMetadataFetch': enableMetadataFetch,
+    'metadataDomain': metadataDomain,
+    'metadataMergeGenres': metadataMergeGenres,
     'libraryDownloadedChapters': libraryDownloadedChapters,
     'libraryFilterAnimeBookMarkedType': libraryFilterAnimeBookMarkedType,
     'libraryFilterAnimeDownloadType': libraryFilterAnimeDownloadType,

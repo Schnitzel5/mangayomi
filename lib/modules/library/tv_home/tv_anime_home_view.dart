@@ -1040,7 +1040,7 @@ class _HeroContent extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          manga.name ?? '',
+                          manga.displayedName ?? '',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -1484,7 +1484,7 @@ class _TvHomeCard extends ConsumerWidget {
       isComfortableGrid: true,
       progress: progress,
       bottomTextWidget: BottomTextWidget(
-        text: manga.name ?? '',
+        text: manga.displayedName ?? '',
         maxLines: 1,
         isComfortableGrid: true,
       ),

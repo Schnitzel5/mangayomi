@@ -14,6 +14,8 @@ import 'package:mangayomi/utils/extensions/build_context_extensions.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:mangayomi/modules/widgets/tv_escapable_slider.dart';
 import 'package:mangayomi/utils/platform_utils.dart';
+import 'package:mangayomi/services/fetch_metadata.dart';
+import 'package:mangayomi/eval/model/m_bridge.dart';
 
 class GeneralScreen extends ConsumerStatefulWidget {
   const GeneralScreen({super.key});
@@ -27,6 +29,7 @@ class _GeneralStateScreen extends ConsumerState<GeneralScreen> {
   int _setting = 0;
   int _synopsis = 0;
   int _theme = 0;
+  bool _refreshingMetadata = false;
 
   @override
   void initState() {
@@ -52,6 +55,9 @@ class _GeneralStateScreen extends ConsumerState<GeneralScreen> {
     );
     final rpcShowTitleState = ref.watch(rpcShowTitleStateProvider);
     final rpcShowCoverImage = ref.watch(rpcShowCoverImageStateProvider);
+    final enableMetadataFetch = ref.watch(enableMetadataFetchStateProvider);
+    final metadataDomain = ref.watch(metadataDomainStateProvider);
+    final metadataMergeGenres = ref.watch(metadataMergeGenresStateProvider);
     final doHState = ref.watch(doHProviderStateProvider);
     final availableProviders = ref.watch(availableDoHProvidersProvider);
     return Scaffold(
@@ -492,6 +498,70 @@ class _GeneralStateScreen extends ConsumerState<GeneralScreen> {
                 ref.read(rpcShowCoverImageStateProvider.notifier).set(value);
               },
             ),
+            SwitchListTile(
+              value: enableMetadataFetch,
+              title: Text(l10n.enable_metadata_fetch),
+              subtitle: Text(
+                l10n.enable_metadata_fetch_info,
+                style: TextStyle(fontSize: 11, color: context.secondaryColor),
+              ),
+              onChanged: (value) {
+                ref.read(enableMetadataFetchStateProvider.notifier).set(value);
+              },
+            ),
+            if (enableMetadataFetch)
+              ListTile(
+                title: Text(l10n.metadata_server_domain),
+                subtitle: Text(
+                  metadataDomain.isEmpty
+                      ? defaultMetadataDomain
+                      : metadataDomain,
+                  style: TextStyle(fontSize: 11, color: context.secondaryColor),
+                ),
+                onTap: () =>
+                    _showMetadataDomainDialog(context, ref, metadataDomain),
+              ),
+            if (enableMetadataFetch)
+              SwitchListTile(
+                value: metadataMergeGenres,
+                title: Text(l10n.metadata_merge_genres),
+                subtitle: Text(
+                  l10n.metadata_merge_genres_info,
+                  style: TextStyle(fontSize: 11, color: context.secondaryColor),
+                ),
+                onChanged: (value) {
+                  ref
+                      .read(metadataMergeGenresStateProvider.notifier)
+                      .set(value);
+                },
+              ),
+            if (enableMetadataFetch)
+              ListTile(
+                title: Text(l10n.refresh_library_metadata),
+                subtitle: Text(
+                  l10n.refresh_library_metadata_info,
+                  style: TextStyle(fontSize: 11, color: context.secondaryColor),
+                ),
+                trailing: _refreshingMetadata
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : null,
+                onTap: _refreshingMetadata
+                    ? null
+                    : () async {
+                        setState(() => _refreshingMetadata = true);
+                        final updated = await refreshLibraryMetadata();
+                        if (!mounted) return;
+                        setState(() => _refreshingMetadata = false);
+                        botToast(
+                          l10n.library_metadata_refreshed(updated),
+                          second: 3,
+                        );
+                      },
+              ),
           ],
         ),
       ),
@@ -570,6 +640,44 @@ class _GeneralStateScreen extends ConsumerState<GeneralScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _showMetadataDomainDialog(
+    BuildContext context,
+    WidgetRef ref,
+    String domain,
+  ) {
+    final controller = TextEditingController(text: domain);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.metadata_server_domain),
+        content: SizedBox(
+          width: context.width(0.8),
+          child: TextFormField(
+            controller: controller,
+            autofocus: true,
+            keyboardType: TextInputType.url,
+            decoration: const InputDecoration(hintText: defaultMetadataDomain),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(context.l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () {
+              ref
+                  .read(metadataDomainStateProvider.notifier)
+                  .set(controller.text);
+              Navigator.pop(context);
+            },
+            child: Text(context.l10n.dialog_confirm),
+          ),
+        ],
       ),
     );
   }

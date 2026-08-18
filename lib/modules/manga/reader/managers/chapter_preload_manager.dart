@@ -144,7 +144,7 @@ class ChapterPreloadManager {
       final transitionPage = createTransitionPage(
         currentChapter: currentChapter,
         nextChapter: firstPage.chapter,
-        mangaName: currentChapter.manga.value?.name ?? '',
+        mangaName: currentChapter.manga.value?.displayedName ?? '',
       );
 
       // Update page indices for new pages
@@ -233,7 +233,7 @@ class ChapterPreloadManager {
       final transitionPage = UChapDataPreload.transition(
         currentChapter: firstPage.chapter!,
         nextChapter: currentChapter,
-        mangaName: currentChapter.manga.value?.name ?? '',
+        mangaName: currentChapter.manga.value?.displayedName ?? '',
         pageIndex: 0, // recalculated below
       );
 
@@ -291,7 +291,7 @@ class ChapterPreloadManager {
     final transitionPage = createTransitionPage(
       currentChapter: chapter,
       nextChapter: null,
-      mangaName: chapter.manga.value?.name ?? '',
+      mangaName: chapter.manga.value?.displayedName ?? '',
       isLastChapter: true,
     );
 

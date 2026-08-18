@@ -480,7 +480,7 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
                         title:
                             ref.watch(offetProvider.select((val) => val > 200))
                             ? Text(
-                                widget.manga!.name!,
+                                widget.manga!.displayedName!,
                                 style: const TextStyle(fontSize: 17),
                               )
                             : null,
@@ -632,7 +632,7 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
                                   onPressed: () async {
                                     final picked = await showTvMenu(
                                       context,
-                                      title: widget.manga!.name ?? '',
+                                      title: widget.manga!.displayedName ?? '',
                                       options: [
                                         for (final e in entries)
                                           TvMenuOption(e.$1),
@@ -1879,16 +1879,103 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
   }
 
   Widget _titles() {
+    final manga = widget.manga!;
+    final options = _titleOptions();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        SelectableText(
-          widget.manga!.name!,
-          style: const TextStyle(fontSize: 20),
+        Row(
+          children: [
+            Flexible(
+              child: SelectableText(
+                manga.displayedName!,
+                style: const TextStyle(fontSize: 20),
+              ),
+            ),
+            if (options.length > 1)
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                tooltip: context.l10n.display_title,
+                icon: Icon(
+                  Icons.translate_rounded,
+                  size: 18,
+                  color: context.secondaryColor,
+                ),
+                onPressed: () => _showDisplayTitleDialog(options),
+              ),
+          ],
         ),
+        for (final (_, title) in options)
+          if (title != manga.displayedName)
+            SelectableText(
+              title,
+              style: TextStyle(fontSize: 12, color: context.secondaryColor),
+            ),
         widget.titleDescription!,
       ],
+    );
+  }
+
+  List<(String, String)> _titleOptions() {
+    final l10n = l10nLocalizations(context)!;
+    final manga = widget.manga!;
+    final seen = <String>{};
+    return [
+      for (final (label, title) in [
+        (l10n.source_title, manga.name),
+        (l10n.title_english, manga.titleEnglish),
+        (l10n.title_romaji, manga.titleRomaji),
+        (l10n.title_native, manga.titleNative),
+      ])
+        if (title != null && title.trim().isNotEmpty && seen.add(title))
+          (label, title),
+    ];
+  }
+
+  void _showDisplayTitleDialog(List<(String, String)> options) {
+    final l10n = l10nLocalizations(context)!;
+    final manga = widget.manga!;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.display_title),
+        content: SizedBox(
+          width: context.width(0.8),
+          child: RadioGroup<String>(
+            groupValue: manga.displayedName,
+            onChanged: (value) {
+              isar.writeTxnSync(
+                () => isar.mangas.putSync(
+                  manga
+                    ..displayTitle = value == manga.name ? null : value
+                    ..updatedAt = DateTime.now().millisecondsSinceEpoch,
+                ),
+              );
+              Navigator.pop(context);
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final (label, title) in options)
+                  RadioListTile<String>(
+                    dense: true,
+                    contentPadding: const EdgeInsets.all(0),
+                    value: title,
+                    title: Text(title),
+                    subtitle: Text(label),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1934,7 +2021,7 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
                     Map<String, dynamic> data = {
                       'url': url,
                       'sourceId': source.id.toString(),
-                      'title': manga.name!,
+                      'title': manga.displayedName!,
                     };
                     context.push("/mangawebview", extra: data);
                   },

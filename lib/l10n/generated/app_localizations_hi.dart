@@ -1684,6 +1684,47 @@ class AppLocalizationsHi extends AppLocalizations {
       'यह स्वचालित रूप से VPN जैसी प्लेटफ़ॉर्म सुविधाओं का समर्थन करता है, HTTP/3 जैसी अधिक HTTP सुविधाओं का समर्थन करता है और कस्टम रीडायरेक्ट हैंडलिंग';
 
   @override
+  String get enable_metadata_fetch => 'Fetch metadata';
+
+  @override
+  String get enable_metadata_fetch_info =>
+      'Fetch alternative titles and missing details (description, genres, status) from the metadata server when opening an entry\'s details';
+
+  @override
+  String get metadata_server_domain => 'Metadata server domain';
+
+  @override
+  String get metadata_merge_genres => 'Merge fetched genres';
+
+  @override
+  String get metadata_merge_genres_info =>
+      'Combine fetched genres with the source\'s genres instead of replacing them';
+
+  @override
+  String get display_title => 'Display title';
+
+  @override
+  String get title_english => 'English title';
+
+  @override
+  String get title_romaji => 'Romaji title';
+
+  @override
+  String get title_native => 'Native title';
+
+  @override
+  String get refresh_library_metadata => 'Refresh library metadata';
+
+  @override
+  String get refresh_library_metadata_info =>
+      'Re-fetch alternative titles for every library entry';
+
+  @override
+  String library_metadata_refreshed(Object x) {
+    return 'Metadata refreshed! $x entries updated';
+  }
+
+  @override
   String n_hour_ago(Object hour) {
     return '$hour घंटे पहले';
   }

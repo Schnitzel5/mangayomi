@@ -193,7 +193,7 @@ class _HistoryTabState extends ConsumerState<HistoryTab>
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            manga.name!,
+                                            manga.displayedName!,
                                             style: TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.bold,
@@ -301,7 +301,7 @@ class _HistoryTabState extends ConsumerState<HistoryTab>
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              manga.name!,
+                                              manga.displayedName!,
                                               style: TextStyle(
                                                 fontSize: 14,
                                                 color: Theme.of(context)

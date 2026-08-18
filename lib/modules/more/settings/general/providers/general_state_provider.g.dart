@@ -380,3 +380,162 @@ abstract class _$UserAgentState extends $Notifier<String> {
     element.handleCreate(ref, build);
   }
 }
+
+@ProviderFor(EnableMetadataFetchState)
+final enableMetadataFetchStateProvider = EnableMetadataFetchStateProvider._();
+
+final class EnableMetadataFetchStateProvider
+    extends $NotifierProvider<EnableMetadataFetchState, bool> {
+  EnableMetadataFetchStateProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'enableMetadataFetchStateProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$enableMetadataFetchStateHash();
+
+  @$internal
+  @override
+  EnableMetadataFetchState create() => EnableMetadataFetchState();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$enableMetadataFetchStateHash() =>
+    r'3c9df82155e8165079499a4536b32c0425739629';
+
+abstract class _$EnableMetadataFetchState extends $Notifier<bool> {
+  bool build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<bool, bool>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<bool, bool>,
+              bool,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
+@ProviderFor(MetadataDomainState)
+final metadataDomainStateProvider = MetadataDomainStateProvider._();
+
+final class MetadataDomainStateProvider
+    extends $NotifierProvider<MetadataDomainState, String> {
+  MetadataDomainStateProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'metadataDomainStateProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$metadataDomainStateHash();
+
+  @$internal
+  @override
+  MetadataDomainState create() => MetadataDomainState();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(String value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<String>(value),
+    );
+  }
+}
+
+String _$metadataDomainStateHash() =>
+    r'f9403e474b5d3dcdad05519b3926646763eb7414';
+
+abstract class _$MetadataDomainState extends $Notifier<String> {
+  String build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<String, String>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<String, String>,
+              String,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
+@ProviderFor(MetadataMergeGenresState)
+final metadataMergeGenresStateProvider = MetadataMergeGenresStateProvider._();
+
+final class MetadataMergeGenresStateProvider
+    extends $NotifierProvider<MetadataMergeGenresState, bool> {
+  MetadataMergeGenresStateProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'metadataMergeGenresStateProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$metadataMergeGenresStateHash();
+
+  @$internal
+  @override
+  MetadataMergeGenresState create() => MetadataMergeGenresState();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$metadataMergeGenresStateHash() =>
+    r'4f10a6739ac247ef018f1b11bb2ccba2ed750757';
+
+abstract class _$MetadataMergeGenresState extends $Notifier<bool> {
+  bool build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<bool, bool>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<bool, bool>,
+              bool,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
