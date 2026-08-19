@@ -20,6 +20,8 @@ class SyncPreference {
 
   bool syncOn = false;
 
+  bool liveSyncOn = true;
+
   int autoSyncFrequency = 0;
 
   bool syncHistories = false;
@@ -38,6 +40,7 @@ class SyncPreference {
     this.server,
     this.syncOn = false,
     this.autoSyncFrequency = 0,
+    this.liveSyncOn = true,
   });
 
   SyncPreference.fromJson(Map<String, dynamic> json) {
@@ -49,6 +52,7 @@ class SyncPreference {
     lastSyncUpdate = json['lastSyncUpdate'];
     server = json['server'];
     syncOn = json['syncOn'] ?? false;
+    liveSyncOn = json['liveSyncOn'] ?? true;
     autoSyncFrequency = json['autoSyncFrequency'] ?? 0;
     syncHistories = json['syncHistories'] ?? false;
     syncUpdates = json['syncUpdates'] ?? false;
@@ -63,6 +67,7 @@ class SyncPreference {
     'lastSyncHistory': lastSyncHistory,
     'lastSyncUpdate': lastSyncUpdate,
     'syncOn': syncOn,
+    'liveSyncOn': liveSyncOn,
     'autoSyncFrequency': autoSyncFrequency,
     'syncHistories': syncHistories,
     'syncUpdates': syncUpdates,

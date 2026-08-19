@@ -12,7 +12,8 @@ part of 'sync_server.dart';
 @ProviderFor(SyncServer)
 final syncServerProvider = SyncServerFamily._();
 
-final class SyncServerProvider extends $NotifierProvider<SyncServer, void> {
+final class SyncServerProvider
+    extends $NotifierProvider<SyncServer, LiveSyncStatus> {
   SyncServerProvider._({
     required SyncServerFamily super.from,
     required int super.argument,
@@ -39,10 +40,10 @@ final class SyncServerProvider extends $NotifierProvider<SyncServer, void> {
   SyncServer create() => SyncServer();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(void value) {
+  Override overrideWithValue(LiveSyncStatus value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<void>(value),
+      providerOverride: $SyncValueProvider<LiveSyncStatus>(value),
     );
   }
 
@@ -57,10 +58,17 @@ final class SyncServerProvider extends $NotifierProvider<SyncServer, void> {
   }
 }
 
-String _$syncServerHash() => r'577f101a9fb66b1ed278d5c2b651b68ded4fe178';
+String _$syncServerHash() => r'8333e1ba0600075e9410d7b522fcc4dd32f98fba';
 
 final class SyncServerFamily extends $Family
-    with $ClassFamilyOverride<SyncServer, void, void, void, int> {
+    with
+        $ClassFamilyOverride<
+          SyncServer,
+          LiveSyncStatus,
+          LiveSyncStatus,
+          LiveSyncStatus,
+          int
+        > {
   SyncServerFamily._()
     : super(
         retry: null,
@@ -77,20 +85,20 @@ final class SyncServerFamily extends $Family
   String toString() => r'syncServerProvider';
 }
 
-abstract class _$SyncServer extends $Notifier<void> {
+abstract class _$SyncServer extends $Notifier<LiveSyncStatus> {
   late final _$args = ref.$arg as int;
   int get syncId => _$args;
 
-  void build({required int syncId});
+  LiveSyncStatus build({required int syncId});
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<void, void>;
+    final ref = this.ref as $Ref<LiveSyncStatus, LiveSyncStatus>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<void, void>,
-              void,
+              AnyNotifier<LiveSyncStatus, LiveSyncStatus>,
+              LiveSyncStatus,
               Object?,
               Object?
             >;

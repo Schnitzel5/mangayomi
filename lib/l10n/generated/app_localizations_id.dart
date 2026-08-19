@@ -1956,6 +1956,30 @@ class AppLocalizationsId extends AppLocalizations {
   String get sync_enable_settings => 'Sinkronkan pengaturan';
 
   @override
+  String get live_sync => 'Live sync';
+
+  @override
+  String get live_sync_info =>
+      'Instantly push and pull changes over a WebSocket while the app is open';
+
+  @override
+  String get live_sync_connected => 'Connected';
+
+  @override
+  String get live_sync_connecting => 'Connecting…';
+
+  @override
+  String get live_sync_off => 'Off';
+
+  @override
+  String get live_sync_no_devices => 'No other devices connected';
+
+  @override
+  String live_sync_devices(Object names) {
+    return 'Other devices: $names';
+  }
+
+  @override
   String get enable_mpv => 'Aktifkan shader / skrip mpv';
 
   @override

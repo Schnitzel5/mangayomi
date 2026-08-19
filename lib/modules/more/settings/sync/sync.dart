@@ -190,6 +190,72 @@ class SyncScreen extends ConsumerWidget {
                         }
                       : null,
                 ),
+                SwitchListTile(
+                  value: syncPreference.liveSyncOn,
+                  title: Text(context.l10n.live_sync),
+                  subtitle: Text(
+                    context.l10n.live_sync_info,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: context.secondaryColor,
+                    ),
+                  ),
+                  onChanged: syncPreference.syncOn
+                      ? (value) {
+                          ref
+                              .read(synchingProvider(syncId: 1).notifier)
+                              .setLiveSyncOn(value);
+                        }
+                      : null,
+                ),
+                if (syncPreference.syncOn &&
+                    isLogged &&
+                    syncPreference.liveSyncOn)
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final status = ref.watch(syncServerProvider(syncId: 1));
+                      final (color, label) = switch (status.state) {
+                        LiveSyncState.connected => (
+                          Colors.green,
+                          l10n.live_sync_connected,
+                        ),
+                        LiveSyncState.connecting => (
+                          Colors.orange,
+                          l10n.live_sync_connecting,
+                        ),
+                        LiveSyncState.off => (
+                          context.secondaryColor,
+                          l10n.live_sync_off,
+                        ),
+                      };
+                      return ListTile(
+                        leading: Icon(Icons.circle, size: 12, color: color),
+                        title: Text(
+                          label,
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                        subtitle: status.state == LiveSyncState.connected
+                            ? Text(
+                                status.devices.isEmpty
+                                    ? l10n.live_sync_no_devices
+                                    : l10n.live_sync_devices(
+                                        status.devices
+                                            .map(
+                                              (d) => d.device.isEmpty
+                                                  ? d.clientId
+                                                  : d.device,
+                                            )
+                                            .join(', '),
+                                      ),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: context.secondaryColor,
+                                ),
+                              )
+                            : null,
+                      );
+                    },
+                  ),
                 Padding(
                   padding: const EdgeInsets.only(
                     left: 15,

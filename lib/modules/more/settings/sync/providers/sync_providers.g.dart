@@ -58,7 +58,7 @@ final class SynchingProvider
   }
 }
 
-String _$synchingHash() => r'7690d8467161e57e1987901391bb62471b68607b';
+String _$synchingHash() => r'1b0206eb5a03badaaf05916550a76a2856f0c9ef';
 
 final class SynchingFamily extends $Family
     with
