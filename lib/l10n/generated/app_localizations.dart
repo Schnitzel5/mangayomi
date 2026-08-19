@@ -3149,6 +3149,78 @@ abstract class AppLocalizations {
   /// **'it automatically supports platform features such VPNs, support more HTTP features such as HTTP/3 and custom redirect handling'**
   String get use_native_http_client_info;
 
+  /// No description provided for @enable_metadata_fetch.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch metadata'**
+  String get enable_metadata_fetch;
+
+  /// No description provided for @enable_metadata_fetch_info.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch alternative titles and missing details (description, genres, status) from the metadata server when opening an entry\'s details'**
+  String get enable_metadata_fetch_info;
+
+  /// No description provided for @metadata_server_domain.
+  ///
+  /// In en, this message translates to:
+  /// **'Metadata server domain'**
+  String get metadata_server_domain;
+
+  /// No description provided for @metadata_merge_genres.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge fetched genres'**
+  String get metadata_merge_genres;
+
+  /// No description provided for @metadata_merge_genres_info.
+  ///
+  /// In en, this message translates to:
+  /// **'Combine fetched genres with the source\'s genres instead of replacing them'**
+  String get metadata_merge_genres_info;
+
+  /// No description provided for @display_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Display title'**
+  String get display_title;
+
+  /// No description provided for @title_english.
+  ///
+  /// In en, this message translates to:
+  /// **'English title'**
+  String get title_english;
+
+  /// No description provided for @title_romaji.
+  ///
+  /// In en, this message translates to:
+  /// **'Romaji title'**
+  String get title_romaji;
+
+  /// No description provided for @title_native.
+  ///
+  /// In en, this message translates to:
+  /// **'Native title'**
+  String get title_native;
+
+  /// No description provided for @refresh_library_metadata.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh library metadata'**
+  String get refresh_library_metadata;
+
+  /// No description provided for @refresh_library_metadata_info.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-fetch alternative titles for every library entry'**
+  String get refresh_library_metadata_info;
+
+  /// No description provided for @library_metadata_refreshed.
+  ///
+  /// In en, this message translates to:
+  /// **'Metadata refreshed! {x} entries updated'**
+  String library_metadata_refreshed(Object x);
+
   /// No description provided for @n_hour_ago.
   ///
   /// In en, this message translates to:

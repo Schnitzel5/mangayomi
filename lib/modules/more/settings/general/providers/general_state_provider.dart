@@ -143,3 +143,64 @@ class UserAgentState extends _$UserAgentState {
     );
   }
 }
+
+@riverpod
+class EnableMetadataFetchState extends _$EnableMetadataFetchState {
+  @override
+  bool build() {
+    return isar.settings.getSync(227)!.enableMetadataFetch ?? false;
+  }
+
+  void set(bool value) {
+    final settings = isar.settings.getSync(227);
+    state = value;
+    isar.writeTxnSync(
+      () => isar.settings.putSync(
+        settings!
+          ..enableMetadataFetch = value
+          ..updatedAt = DateTime.now().millisecondsSinceEpoch,
+      ),
+    );
+  }
+}
+
+@riverpod
+class MetadataDomainState extends _$MetadataDomainState {
+  @override
+  String build() {
+    return isar.settings.getSync(227)!.metadataDomain ?? "";
+  }
+
+  void set(String value) {
+    final settings = isar.settings.getSync(227);
+    final domain = value.trim();
+    state = domain;
+    isar.writeTxnSync(
+      () => isar.settings.putSync(
+        settings!
+          ..metadataDomain = domain.isEmpty ? null : domain
+          ..updatedAt = DateTime.now().millisecondsSinceEpoch,
+      ),
+    );
+  }
+}
+
+@riverpod
+class MetadataMergeGenresState extends _$MetadataMergeGenresState {
+  @override
+  bool build() {
+    return isar.settings.getSync(227)!.metadataMergeGenres ?? true;
+  }
+
+  void set(bool value) {
+    final settings = isar.settings.getSync(227);
+    state = value;
+    isar.writeTxnSync(
+      () => isar.settings.putSync(
+        settings!
+          ..metadataMergeGenres = value
+          ..updatedAt = DateTime.now().millisecondsSinceEpoch,
+      ),
+    );
+  }
+}

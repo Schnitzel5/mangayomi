@@ -69,7 +69,7 @@ class _LibraryGridViewWidgetState extends State<LibraryGridViewWidget> {
                     isComfortableGrid: widget.isComfortableGrid,
                     bottomTextWidget: BottomTextWidget(
                       maxLines: 1,
-                      text: entry.name!,
+                      text: entry.displayedName!,
                       isComfortableGrid: widget.isComfortableGrid,
                     ),
                     image: resolveCoverImage(entry, ref),
@@ -131,7 +131,7 @@ class _LibraryGridViewWidgetState extends State<LibraryGridViewWidget> {
                       ),
 
                       if (!widget.isComfortableGrid && !widget.isCoverOnlyGrid)
-                        BottomTextWidget(text: entry.name!),
+                        BottomTextWidget(text: entry.displayedName!),
 
                       if (widget.continueReaderBtn)
                         Positioned(

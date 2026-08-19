@@ -168,7 +168,7 @@ List<Manga> filteredLibraryManga(
       mangas.sort((a, b) {
         switch (sortType) {
           case 0:
-            return a.name!.compareTo(b.name!);
+            return a.displayedName!.compareTo(b.displayedName!);
           case 1:
             return a.lastRead!.compareTo(b.lastRead!);
           case 2:
@@ -195,6 +195,9 @@ bool _matchesSearchQuery(Manga manga, String query) {
   return keywords.any(
     (keyword) =>
         (manga.name?.toLowerCase().contains(keyword) ?? false) ||
+        (manga.titleEnglish?.toLowerCase().contains(keyword) ?? false) ||
+        (manga.titleRomaji?.toLowerCase().contains(keyword) ?? false) ||
+        (manga.titleNative?.toLowerCase().contains(keyword) ?? false) ||
         (manga.source?.toLowerCase().contains(keyword) ?? false) ||
         (manga.genre?.any((g) => g.toLowerCase().contains(keyword)) ?? false),
   );

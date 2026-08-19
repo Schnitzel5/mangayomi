@@ -166,7 +166,7 @@ class _DownloadQueueScreenState extends ConsumerState<DownloadQueueScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      element.chapter.value?.manga.value?.name ?? "",
+                      element.chapter.value?.manga.value?.displayedName ?? "",
                       style: const TextStyle(fontSize: 16),
                     ),
                     Text(
@@ -203,7 +203,9 @@ class _DownloadQueueScreenState extends ConsumerState<DownloadQueueScreen> {
                     onPressed: () async {
                       final picked = await showTvMenu(
                         context,
-                        title: element.chapter.value?.manga.value?.name ?? '',
+                        title:
+                            element.chapter.value?.manga.value?.displayedName ??
+                            '',
                         options: [
                           TvMenuOption(l10n.cancel),
                           TvMenuOption(l10n.cancel_all_for_this_series),

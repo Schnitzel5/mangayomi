@@ -311,7 +311,7 @@ class _TvAnimeDetailViewState extends ConsumerState<TvAnimeDetailView> {
       extra: {
         'url': '${source.baseUrl}${manga.link!.getUrlWithoutDomain}',
         'sourceId': source.id.toString(),
-        'title': manga.name!,
+        'title': manga.displayedName!,
       },
     );
   }
@@ -512,7 +512,7 @@ class _LeftInfo extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      manga.name ?? '',
+                      manga.displayedName ?? '',
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(

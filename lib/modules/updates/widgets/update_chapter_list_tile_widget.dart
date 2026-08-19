@@ -56,7 +56,7 @@ class UpdateChapterListTileWidget extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  manga.name!,
+                  manga.displayedName!,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 14,
@@ -68,9 +68,8 @@ class UpdateChapterListTileWidget extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 11,
-                    color: Theme.of(context).textTheme.bodyLarge!.color!.withValues(
-                          alpha: (chapter.isRead ?? false) ? 0.5 : 1,
-                        ),
+                    color: Theme.of(context).textTheme.bodyLarge!.color!
+                        .withValues(alpha: (chapter.isRead ?? false) ? 0.5 : 1),
                   ),
                 ),
               ],
@@ -174,7 +173,7 @@ class UpdateChapterListTileWidget extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                manga.name!,
+                                manga.displayedName!,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontSize: 14,
@@ -189,12 +188,15 @@ class UpdateChapterListTileWidget extends ConsumerWidget {
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: Theme.of(context).textTheme.bodyLarge!.color!
-                                          .withValues(
-                                            alpha: (chapter.isRead ?? false)
-                                                ? 0.5
-                                                : 1,
-                                          ),
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge!
+                                      .color!
+                                      .withValues(
+                                        alpha: (chapter.isRead ?? false)
+                                            ? 0.5
+                                            : 1,
+                                      ),
                                 ),
                               ),
                             ],
