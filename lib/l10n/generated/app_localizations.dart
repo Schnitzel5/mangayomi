@@ -3695,6 +3695,48 @@ abstract class AppLocalizations {
   /// **'Sync settings'**
   String get sync_enable_settings;
 
+  /// No description provided for @live_sync.
+  ///
+  /// In en, this message translates to:
+  /// **'Live sync'**
+  String get live_sync;
+
+  /// No description provided for @live_sync_info.
+  ///
+  /// In en, this message translates to:
+  /// **'Instantly push and pull changes over a WebSocket while the app is open'**
+  String get live_sync_info;
+
+  /// No description provided for @live_sync_connected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get live_sync_connected;
+
+  /// No description provided for @live_sync_connecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting…'**
+  String get live_sync_connecting;
+
+  /// No description provided for @live_sync_off.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get live_sync_off;
+
+  /// No description provided for @live_sync_no_devices.
+  ///
+  /// In en, this message translates to:
+  /// **'No other devices connected'**
+  String get live_sync_no_devices;
+
+  /// No description provided for @live_sync_devices.
+  ///
+  /// In en, this message translates to:
+  /// **'Other devices: {names}'**
+  String live_sync_devices(Object names);
+
   /// No description provided for @enable_mpv.
   ///
   /// In en, this message translates to:

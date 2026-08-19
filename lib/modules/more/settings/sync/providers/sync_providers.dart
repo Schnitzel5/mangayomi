@@ -72,6 +72,13 @@ class Synching extends _$Synching {
     _refreshLiveSync();
   }
 
+  void setLiveSyncOn(bool value) {
+    isar.writeTxnSync(() {
+      isar.syncPreferences.putSync(state..liveSyncOn = value);
+    });
+    _refreshLiveSync();
+  }
+
   void setAutoSyncFrequency(int value) {
     isar.writeTxnSync(() {
       isar.syncPreferences.putSync(state..autoSyncFrequency = value);

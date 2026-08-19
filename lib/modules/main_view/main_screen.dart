@@ -200,7 +200,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   bool isLibSwitch = false;
   @override
   Widget build(BuildContext context) {
-    ref.watch(syncServerProvider(syncId: 1));
+    ref.listen(syncServerProvider(syncId: 1), (_, _) {});
     ref.listen<Locale>(l10nLocaleStateProvider, (previous, next) {
       _clearCache();
       setState(() {});

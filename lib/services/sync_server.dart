@@ -29,12 +29,34 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:mangayomi/l10n/generated/app_localizations.dart';
 part 'sync_server.g.dart';
 
+enum LiveSyncState { off, connecting, connected }
+
+class LiveSyncDevice {
+  final String clientId;
+  final String device;
+
+  const LiveSyncDevice({required this.clientId, required this.device});
+}
+
+class LiveSyncStatus {
+  final LiveSyncState state;
+  final List<LiveSyncDevice> devices;
+
+  const LiveSyncStatus(this.state, {this.devices = const []});
+}
+
 enum _SyncDomain { manga, histories, updates, settings }
 
 String _newSyncClientId() {
   final random = Random.secure();
   final bytes = List<int>.generate(16, (_) => random.nextInt(256));
   return base64UrlEncode(bytes).replaceAll('=', '');
+}
+
+String _syncDeviceLabel() {
+  final host = Platform.localHostname.trim();
+  final os = Platform.operatingSystem;
+  return host.isEmpty ? os : '$host ($os)';
 }
 
 @riverpod
@@ -46,6 +68,7 @@ class SyncServer extends _$SyncServer {
   final String _syncUpdateUrl = '/sync/updates';
   final String _syncSettingsUrl = '/sync/settings';
   final String _clientId = _newSyncClientId();
+  final String _deviceLabel = _syncDeviceLabel();
   final List<StreamSubscription<void>> _databaseSubscriptions = [];
   final Map<_SyncDomain, Timer> _debounceTimers = {};
   final Set<_SyncDomain> _pendingUploads = {};
@@ -64,7 +87,7 @@ class SyncServer extends _$SyncServer {
   int _reconnectAttempt = 0;
 
   @override
-  void build({required int syncId}) {
+  LiveSyncStatus build({required int syncId}) {
     ref.keepAlive();
     _disposed = false;
     _socketReady = false;
@@ -72,6 +95,17 @@ class SyncServer extends _$SyncServer {
     _reconnectAttempt = 0;
     ref.onDispose(_dispose);
     Future<void>.microtask(_startLiveSync);
+    return const LiveSyncStatus(LiveSyncState.off);
+  }
+
+  void _setStatus(
+    LiveSyncState newState, {
+    List<LiveSyncDevice> devices = const [],
+  }) {
+    if (_disposed) {
+      return;
+    }
+    state = LiveSyncStatus(newState, devices: devices);
   }
 
   Future<void> _startLiveSync() async {
@@ -82,12 +116,14 @@ class SyncServer extends _$SyncServer {
     if (!_liveSyncEnabled(preference)) {
       return;
     }
+    _setStatus(LiveSyncState.connecting);
     _subscribeToDatabase();
     await _connect();
   }
 
   bool _liveSyncEnabled(SyncPreference preference) =>
       preference.syncOn &&
+      preference.liveSyncOn &&
       (preference.authToken?.isNotEmpty ?? false) &&
       (preference.server?.isNotEmpty ?? false);
 
@@ -240,7 +276,11 @@ class SyncServer extends _$SyncServer {
         scheme: serverUri.scheme == 'https' ? 'wss' : 'ws',
         path:
             '${serverUri.path.endsWith('/') ? serverUri.path.substring(0, serverUri.path.length - 1) : serverUri.path}/sync/live',
-        queryParameters: {...serverUri.queryParameters, 'clientId': _clientId},
+        queryParameters: {
+          ...serverUri.queryParameters,
+          'clientId': _clientId,
+          'device': _deviceLabel,
+        },
       );
       final socket = await WebSocket.connect(
         socketUri.toString(),
@@ -275,6 +315,7 @@ class SyncServer extends _$SyncServer {
       }
       if (event['type'] == 'ready') {
         _socketReady = true;
+        _setStatus(LiveSyncState.connected);
         _reconnectAttempt = 0;
         final preference = ref.read(synchingProvider(syncId: syncId));
         if (_liveSyncEnabled(preference)) {
@@ -282,6 +323,20 @@ class SyncServer extends _$SyncServer {
           _pendingPulls.addAll(_enabledDomains(preference));
           _scheduleDrain();
         }
+        return;
+      }
+      if (event['type'] == 'presence') {
+        final devices = [
+          for (final entry in (event['devices'] as List? ?? const []))
+            if (entry is Map<String, dynamic> &&
+                entry['clientId'] is String &&
+                entry['clientId'] != _clientId)
+              LiveSyncDevice(
+                clientId: entry['clientId'] as String,
+                device: (entry['device'] as String?) ?? '',
+              ),
+        ];
+        _setStatus(LiveSyncState.connected, devices: devices);
         return;
       }
       if (event['type'] != 'sync') {
@@ -323,8 +378,10 @@ class SyncServer extends _$SyncServer {
     }
     final preference = ref.read(synchingProvider(syncId: syncId));
     if (!_liveSyncEnabled(preference)) {
+      _setStatus(LiveSyncState.off);
       return;
     }
+    _setStatus(LiveSyncState.connecting);
     const delays = [1, 2, 4, 8, 16, 30];
     final delay = delays[min(_reconnectAttempt, delays.length - 1)];
     _reconnectAttempt++;

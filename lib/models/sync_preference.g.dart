@@ -43,20 +43,25 @@ const SyncPreferenceSchema = CollectionSchema(
       name: r'lastSyncUpdate',
       type: IsarType.long,
     ),
-    r'server': PropertySchema(id: 6, name: r'server', type: IsarType.string),
+    r'liveSyncOn': PropertySchema(
+      id: 6,
+      name: r'liveSyncOn',
+      type: IsarType.bool,
+    ),
+    r'server': PropertySchema(id: 7, name: r'server', type: IsarType.string),
     r'syncHistories': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'syncHistories',
       type: IsarType.bool,
     ),
-    r'syncOn': PropertySchema(id: 8, name: r'syncOn', type: IsarType.bool),
+    r'syncOn': PropertySchema(id: 9, name: r'syncOn', type: IsarType.bool),
     r'syncSettings': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'syncSettings',
       type: IsarType.bool,
     ),
     r'syncUpdates': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'syncUpdates',
       type: IsarType.bool,
     ),
@@ -116,11 +121,12 @@ void _syncPreferenceSerialize(
   writer.writeLong(offsets[3], object.lastSyncHistory);
   writer.writeLong(offsets[4], object.lastSyncManga);
   writer.writeLong(offsets[5], object.lastSyncUpdate);
-  writer.writeString(offsets[6], object.server);
-  writer.writeBool(offsets[7], object.syncHistories);
-  writer.writeBool(offsets[8], object.syncOn);
-  writer.writeBool(offsets[9], object.syncSettings);
-  writer.writeBool(offsets[10], object.syncUpdates);
+  writer.writeBool(offsets[6], object.liveSyncOn);
+  writer.writeString(offsets[7], object.server);
+  writer.writeBool(offsets[8], object.syncHistories);
+  writer.writeBool(offsets[9], object.syncOn);
+  writer.writeBool(offsets[10], object.syncSettings);
+  writer.writeBool(offsets[11], object.syncUpdates);
 }
 
 SyncPreference _syncPreferenceDeserialize(
@@ -136,13 +142,14 @@ SyncPreference _syncPreferenceDeserialize(
     lastSyncHistory: reader.readLongOrNull(offsets[3]),
     lastSyncManga: reader.readLongOrNull(offsets[4]),
     lastSyncUpdate: reader.readLongOrNull(offsets[5]),
-    server: reader.readStringOrNull(offsets[6]),
+    liveSyncOn: reader.readBoolOrNull(offsets[6]) ?? true,
+    server: reader.readStringOrNull(offsets[7]),
     syncId: id,
-    syncOn: reader.readBoolOrNull(offsets[8]) ?? false,
+    syncOn: reader.readBoolOrNull(offsets[9]) ?? false,
   );
-  object.syncHistories = reader.readBool(offsets[7]);
-  object.syncSettings = reader.readBool(offsets[9]);
-  object.syncUpdates = reader.readBool(offsets[10]);
+  object.syncHistories = reader.readBool(offsets[8]);
+  object.syncSettings = reader.readBool(offsets[10]);
+  object.syncUpdates = reader.readBool(offsets[11]);
   return object;
 }
 
@@ -166,14 +173,16 @@ P _syncPreferenceDeserializeProp<P>(
     case 5:
       return (reader.readLongOrNull(offset)) as P;
     case 6:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? true) as P;
     case 7:
-      return (reader.readBool(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 8:
-      return (reader.readBoolOrNull(offset) ?? false) as P;
-    case 9:
       return (reader.readBool(offset)) as P;
+    case 9:
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 10:
+      return (reader.readBool(offset)) as P;
+    case 11:
       return (reader.readBool(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -872,6 +881,15 @@ extension SyncPreferenceQueryFilter
   }
 
   QueryBuilder<SyncPreference, SyncPreference, QAfterFilterCondition>
+  liveSyncOnEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'liveSyncOn', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<SyncPreference, SyncPreference, QAfterFilterCondition>
   serverIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1229,6 +1247,20 @@ extension SyncPreferenceQuerySortBy
     });
   }
 
+  QueryBuilder<SyncPreference, SyncPreference, QAfterSortBy>
+  sortByLiveSyncOn() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'liveSyncOn', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SyncPreference, SyncPreference, QAfterSortBy>
+  sortByLiveSyncOnDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'liveSyncOn', Sort.desc);
+    });
+  }
+
   QueryBuilder<SyncPreference, SyncPreference, QAfterSortBy> sortByServer() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'server', Sort.asc);
@@ -1381,6 +1413,20 @@ extension SyncPreferenceQuerySortThenBy
     });
   }
 
+  QueryBuilder<SyncPreference, SyncPreference, QAfterSortBy>
+  thenByLiveSyncOn() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'liveSyncOn', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SyncPreference, SyncPreference, QAfterSortBy>
+  thenByLiveSyncOnDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'liveSyncOn', Sort.desc);
+    });
+  }
+
   QueryBuilder<SyncPreference, SyncPreference, QAfterSortBy> thenByServer() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'server', Sort.asc);
@@ -1509,6 +1555,13 @@ extension SyncPreferenceQueryWhereDistinct
     });
   }
 
+  QueryBuilder<SyncPreference, SyncPreference, QDistinct>
+  distinctByLiveSyncOn() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'liveSyncOn');
+    });
+  }
+
   QueryBuilder<SyncPreference, SyncPreference, QDistinct> distinctByServer({
     bool caseSensitive = true,
   }) {
@@ -1589,6 +1642,12 @@ extension SyncPreferenceQueryProperty
   lastSyncUpdateProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastSyncUpdate');
+    });
+  }
+
+  QueryBuilder<SyncPreference, bool, QQueryOperations> liveSyncOnProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'liveSyncOn');
     });
   }
 
