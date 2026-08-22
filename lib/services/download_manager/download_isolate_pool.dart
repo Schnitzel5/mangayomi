@@ -19,6 +19,14 @@ import 'package:encrypt/encrypt.dart' as encrypt;
 
 final downloadTaskCancellation = <String, bool>{};
 
+bool isLocalVideoProxyUrl(String url) {
+  final uri = Uri.tryParse(url);
+  if (uri == null) return false;
+  final host = uri.host.toLowerCase();
+  return (host == 'localhost' || host == '127.0.0.1' || host == '::1') &&
+      uri.path.startsWith('/video/');
+}
+
 /// Shared Isolate pool to optimize performance
 /// Instead of creating a new Isolate for each download,
 /// we use a limited pool of workers that process tasks in queue.
@@ -436,17 +444,15 @@ Future<void> _processFileDownload(
         final pageUrl = queue.removeFirst();
         final task = _downloadFile(pageUrl, client, params.itemType, replyPort)
             .then((_) {
-              if (params.itemType != ItemType.anime) {
-                completed++;
-                replyPort.send(
-                  DownloadProgress(
-                    pageUrl: pageUrl,
-                    completed,
-                    total,
-                    params.itemType,
-                  ),
-                );
-              }
+              completed++;
+              replyPort.send(
+                DownloadProgress(
+                  pageUrl: pageUrl,
+                  completed,
+                  total,
+                  params.itemType,
+                ),
+              );
             })
             .catchError((error) {
               replyPort.send(
@@ -502,6 +508,9 @@ Future<void> _downloadFile(
       await targetFile.writeAsBytes(bytes);
     } else {
       // Streaming for videos (saves RAM)
+      final responseTimeout = isLocalVideoProxyUrl(pageUrl.url)
+          ? const Duration(minutes: 2)
+          : const Duration(seconds: 30);
       await _withRetry(() async {
         var request = Request('GET', Uri.parse(pageUrl.url));
         request.headers.addAll(pageUrl.headers ?? {});
@@ -512,7 +521,7 @@ Future<void> _downloadFile(
         // and, once exhausted, the failure propagates to the UI.
         StreamedResponse response = await client
             .send(request)
-            .timeout(const Duration(seconds: 30));
+            .timeout(responseTimeout);
         // Accept any 2xx — including 206 Partial Content, which the server
         // returns when the source extension sends `Range: bytes=0-` on the
         // streaming request (e.g. AnimeGG). Rejecting 206 here caused 3
@@ -540,9 +549,11 @@ Future<void> _downloadFile(
           // stalled, so fail (and retry) instead of hanging the whole
           // download forever with no progress.
           await for (var value in response.stream.timeout(
-            const Duration(seconds: 30),
+            responseTimeout,
             onTimeout: (sink) => sink.addError(
-              TimeoutException('Download stalled (no data for 30s)'),
+              TimeoutException(
+                'Download stalled (no data for ${responseTimeout.inSeconds}s)',
+              ),
             ),
           )) {
             sink.add(value);
@@ -569,6 +580,10 @@ Future<void> _downloadFile(
         } finally {
           await sink.flush();
           await sink.close();
+        }
+        if (received == 0) {
+          if (file.existsSync()) await file.delete();
+          throw DownloadPoolException('Downloaded video was empty');
         }
       }, 3);
     }
