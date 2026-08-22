@@ -74,9 +74,15 @@ extension ChapterExtension on Chapter {
     for (final folder in folders) {
       final folderPath = folder.path;
       if (folderPath == null || folderPath.isEmpty) continue;
+      final resolvedPath = folder.name != null
+          ? await resolveLocalArchivePath('${folder.name}/test')
+          : folderPath;
+      final targetDir = folder.name != null
+          ? p.dirname(resolvedPath)
+          : folderPath;
       mangaDirList.add(
         Directory(
-          p.join(folderPath, manga.value!.name!.replaceForbiddenCharacters('_')),
+          p.join(targetDir, manga.value!.name!.replaceForbiddenCharacters('_')),
         ),
       );
     }

@@ -735,7 +735,8 @@ String getLocalVirtualPath(LocalFolder folder, String entityPath) {
       folderPath.isEmpty) {
     return _normalizePath(entityPath);
   }
-  final relative = p.relative(entityPath, from: folderPath);
+  final relative = _safeRelativePath(entityPath, folderPath);
+  if (relative == null) return _normalizePath(entityPath);
   if (relative == '.') return folderName;
   return p.posix.join(folderName, _normalizePath(relative));
 }
@@ -745,7 +746,15 @@ String localVirtualPathFromStoredPath(
   List<LocalFolder> folders,
 ) {
   if (storedPath == null || storedPath.trim().isEmpty) return '';
-  final normalized = _normalizePath(storedPath);
+  final raw = _normalizePath(storedPath);
+  if (_hasTraversal(raw)) {
+    for (final folder in folders) {
+      final recovered = _recoverTraversedVirtualPath(raw, folder);
+      if (recovered != null) return recovered;
+    }
+    return raw;
+  }
+  final normalized = p.posix.normalize(raw);
   final firstSegment = normalized.split('/').firstOrNull;
   if (firstSegment != null &&
       folders.any((folder) => folder.name == firstSegment)) {
@@ -755,9 +764,7 @@ String localVirtualPathFromStoredPath(
   for (final folder in folders) {
     final folderPath = folder.path;
     if (folderPath == null || folderPath.isEmpty) continue;
-    final normalizedFolderPath = _normalizePath(folderPath);
-    if (normalized == normalizedFolderPath ||
-        normalized.startsWith('$normalizedFolderPath/')) {
+    if (_safeRelativePath(normalized, folderPath) != null) {
       return getLocalVirtualPath(folder, storedPath);
     }
   }
@@ -775,21 +782,162 @@ String localVirtualPathFromStoredPath(
 }
 
 Future<String> resolveLocalArchivePath(String archivePath) async {
+  if (archivePath.isEmpty) return archivePath;
   final folders = await getAllLocalFolders();
-  final normalized = _normalizePath(archivePath);
+  final canonicalPath = localVirtualPathFromStoredPath(archivePath, folders);
+  if (_hasTraversal(canonicalPath)) {
+    throw ArgumentError.value(archivePath, 'archivePath', 'path traversal');
+  }
+  final normalized = p.posix.normalize(canonicalPath);
+
+  for (final folder in folders) {
+    final folderPath = folder.path;
+    if (folderPath == null || folderPath.isEmpty) continue;
+    final relative = _safeRelativePath(normalized, folderPath);
+    if (relative == null) continue;
+
+    final resolvedFolder = await _resolveLocalDirectoryPath(
+      folderPath,
+      logContext: 'resolveLocalArchivePath',
+    );
+    final fullPath = relative == '.'
+        ? resolvedFolder.path
+        : p.join(resolvedFolder.path, relative);
+    var candidatePath = fullPath;
+    if (Platform.isIOS) {
+      final active = await LocalDirectoryAccess.startAccessing(fullPath);
+      if (active != null && active.isNotEmpty) candidatePath = active;
+    }
+    return resolveLocalArchiveCandidate(candidatePath);
+  }
+
   final parts = normalized.split('/');
-  if (parts.length < 2) return archivePath;
+  if (parts.length < 2) {
+    if (Platform.isIOS && archivePath.isNotEmpty) {
+      final active = await LocalDirectoryAccess.startAccessing(normalized);
+      if (active != null && active.isNotEmpty) return active;
+    }
+    return normalized;
+  }
 
   final folder = folders.firstWhere(
     (folder) => folder.name == parts.first,
     orElse: () => LocalFolder(),
   );
-  if (folder.path == null || folder.path!.isEmpty) return archivePath;
+  if (folder.path == null || folder.path!.isEmpty) {
+    if (Platform.isIOS && archivePath.isNotEmpty) {
+      final active = await LocalDirectoryAccess.startAccessing(normalized);
+      if (active != null && active.isNotEmpty) return active;
+    }
+    return normalized;
+  }
   final resolvedFolder = await _resolveLocalDirectoryPath(
     folder.path!,
     logContext: 'resolveLocalArchivePath',
   );
-  return p.joinAll([resolvedFolder.path, ...parts.skip(1)]);
+  final fullPath = p.joinAll([resolvedFolder.path, ...parts.skip(1)]);
+  var candidatePath = fullPath;
+  if (Platform.isIOS) {
+    final active = await LocalDirectoryAccess.startAccessing(fullPath);
+    if (active != null && active.isNotEmpty) candidatePath = active;
+  }
+  return resolveLocalArchiveCandidate(candidatePath);
+}
+
+String resolveLocalArchiveCandidate(String path) {
+  if (FileSystemEntity.typeSync(path) != FileSystemEntityType.notFound) {
+    return path;
+  }
+  final archivePath = '$path.cbz';
+  return FileSystemEntity.typeSync(archivePath) != FileSystemEntityType.notFound
+      ? archivePath
+      : path;
+}
+
+String? _recoverTraversedVirtualPath(String path, LocalFolder folder) {
+  final name = folder.name?.trim();
+  final folderPath = folder.path?.trim();
+  if (name == null ||
+      name.isEmpty ||
+      folderPath == null ||
+      folderPath.isEmpty) {
+    return null;
+  }
+
+  final parts = path.split('/');
+  if (parts.isEmpty || parts.first != name) return null;
+  var suffixStart = 1;
+  while (suffixStart < parts.length && parts[suffixStart] == '..') {
+    suffixStart++;
+  }
+  if (suffixStart == 1 || suffixStart == parts.length) return null;
+  final suffix = parts.sublist(suffixStart);
+  if (suffix.any((part) => part == '.' || part == '..')) return null;
+
+  final target = p.posix.normalize(
+    p.posix.joinAll([folderPath, ...parts.skip(1)]),
+  );
+  final logicalFolder = _logicalContainerPath(folderPath);
+  final logicalTarget = _logicalContainerPath(target);
+  if (logicalFolder == null || logicalTarget == null) return null;
+  if (logicalTarget != logicalFolder &&
+      !logicalTarget.startsWith('$logicalFolder/')) {
+    return null;
+  }
+
+  final cleanSuffix = p.posix.relative(logicalTarget, from: logicalFolder);
+  if (_hasTraversal(cleanSuffix)) return null;
+  return p.posix.join(name, cleanSuffix);
+}
+
+String? _logicalContainerPath(String path) {
+  final normalized = _normalizeIosPath(path);
+  final parts = normalized.split('/');
+  final containersIndex = parts.indexOf('Containers');
+  if (containersIndex < 1 || containersIndex + 3 >= parts.length) return null;
+  final isApplication =
+      parts[containersIndex + 1] == 'Data' &&
+      parts[containersIndex + 2] == 'Application';
+  final isAppGroup =
+      parts[containersIndex + 1] == 'Shared' &&
+      parts[containersIndex + 2] == 'AppGroup';
+  if (!isApplication && !isAppGroup) {
+    return null;
+  }
+  parts[containersIndex + 3] = '<application-container>';
+  return p.posix.joinAll(parts);
+}
+
+String _normalizeIosPath(String path) {
+  final normalized = p.posix.normalize(_normalizePath(path));
+  return normalized.startsWith('/private/var/')
+      ? normalized.substring('/private'.length)
+      : normalized;
+}
+
+String? _safeRelativePath(String path, String root) {
+  final normalizedPath = _normalizePath(path);
+  final normalizedRoot = _normalizePath(root);
+  if (_hasTraversal(normalizedPath) || _hasTraversal(normalizedRoot)) {
+    return null;
+  }
+
+  final canonicalPath = p.posix.normalize(normalizedPath);
+  final canonicalRoot = p.posix.normalize(normalizedRoot);
+  final isRoot = canonicalRoot == '/';
+  if (canonicalPath != canonicalRoot &&
+      !(isRoot
+          ? canonicalPath.startsWith('/')
+          : canonicalPath.startsWith('$canonicalRoot/'))) {
+    return null;
+  }
+
+  final relative = p.posix.relative(canonicalPath, from: canonicalRoot);
+  return _hasTraversal(relative) ? null : relative;
+}
+
+bool _hasTraversal(String path) {
+  return _normalizePath(path).split('/').any((part) => part == '..');
 }
 
 List<LocalFolder> _normalizeLocalFolders(List<LocalFolder> folders) {
@@ -834,6 +982,7 @@ Future<List<FileSystemEntity>> _listLocalDirectory(
 }) async {
   if (Platform.isIOS) {
     try {
+      await LocalDirectoryAccess.startAccessing(directory.path);
       final entries = await LocalDirectoryAccess.listDirectory(directory.path);
       if (entries != null) {
         debugPrint(
@@ -944,6 +1093,12 @@ Future<_ResolvedLocalDirectory> _resolveLocalDirectoryPath(
   String dirPath, {
   required String logContext,
 }) async {
+  if (Platform.isIOS) {
+    final activePath = await LocalDirectoryAccess.startAccessing(dirPath);
+    if (activePath != null && activePath.isNotEmpty) {
+      dirPath = activePath;
+    }
+  }
   var probe = await _probeLocalDirectory(dirPath);
   _logDirectoryProbe(logContext, 'initial', probe);
   if (probe.exists) {

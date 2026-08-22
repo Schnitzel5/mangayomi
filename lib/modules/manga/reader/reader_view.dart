@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:photo_view/photo_view.dart';
 import 'package:mangayomi/modules/widgets/error_state.dart';
 import 'package:mangayomi/services/downloaded_chapter.dart';
+import 'package:mangayomi/modules/library/providers/file_scanner.dart';
 import 'package:mangayomi/modules/manga/archive_reader/providers/archive_reader_providers.dart';
 import 'package:mangayomi/utils/platform_utils.dart';
 import 'package:mangayomi/modules/manga/reader/subsampling_scale_image_view/subsampling_scale_image_view.dart'
@@ -1266,6 +1267,11 @@ class _MangaChapterPageGalleryState
         return;
       }
       final nextChapter = _readerController.getNextChapter();
+      if ((chapter.archivePath?.trim().isNotEmpty ?? false) &&
+          (nextChapter.archivePath?.trim().isEmpty ?? true)) {
+        _isNextChapterPreloading = false;
+        return;
+      }
       if (isChapterLoaded(nextChapter)) {
         _isNextChapterPreloading = false;
         return;
@@ -1355,10 +1361,12 @@ class _MangaChapterPageGalleryState
     if (needsReload) {
       final isLocalArchive = (currentChapter.archivePath ?? '').isNotEmpty;
       final archivePath = isLocalArchive
-          ? currentChapter.archivePath
+          ? await resolveLocalArchivePath(currentChapter.archivePath!)
           : (await findDownloadedChapter(currentChapter))?.archive?.path;
 
-      if (archivePath != null && await File(archivePath).exists()) {
+      if (archivePath != null &&
+          (await File(archivePath).exists() ||
+              await Directory(archivePath).exists())) {
         try {
           final local = await ref.read(
             getArchiveDataFromFileProvider(archivePath).future,

@@ -53,7 +53,8 @@ Future<(List<Video>, bool, List<String>, Directory?)> getVideoList(
         ? await resolveLocalArchivePath(episode.archivePath!)
         : null;
     List<String> infoHashes = [];
-    if (await File(mp4animePath).exists() || isLocalArchive) {
+    final path = isLocalArchive ? resolvedArchivePath : mp4animePath;
+    if (path != null && (await File(path).exists() || isLocalArchive)) {
       final animeDir =
           resolvedArchivePath != null && episode.manga.value?.source == "local"
           ? Directory(p.dirname(resolvedArchivePath))
@@ -62,7 +63,6 @@ Future<(List<Video>, bool, List<String>, Directory?)> getVideoList(
         episode,
         mangaMainDirectory: animeDir ?? downloadedDirectory,
       ))!;
-      final path = isLocalArchive ? resolvedArchivePath : mp4animePath;
       final subtitlesDir = Directory(
         p.join('${chapterDirectory.path}_subtitles'),
       );
@@ -80,7 +80,7 @@ Future<(List<Video>, bool, List<String>, Directory?)> getVideoList(
       }
       keepAlive.close();
       return (
-        [Video(path!, episode.name!, path, subtitles: subtitles)],
+        [Video(path, episode.name ?? '', path, subtitles: subtitles)],
         true,
         infoHashes,
         mpvDirectory,
