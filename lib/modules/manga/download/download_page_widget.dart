@@ -7,6 +7,9 @@ import 'package:isar_community/isar.dart';
 import 'package:mangayomi/main.dart';
 import 'package:mangayomi/models/chapter.dart';
 import 'package:mangayomi/models/download.dart';
+import 'package:mangayomi/models/settings.dart';
+import 'package:mangayomi/modules/library/providers/file_scanner.dart';
+import 'package:mangayomi/modules/more/settings/downloads/providers/downloads_state_provider.dart';
 import 'package:mangayomi/providers/l10n_providers.dart';
 import 'package:mangayomi/providers/storage_provider.dart';
 import 'package:mangayomi/modules/manga/download/providers/download_provider.dart';
@@ -24,13 +27,15 @@ class ChapterPageDownload extends ConsumerWidget {
   void _startDownload(
     bool? useWifi,
     int? downloadId,
-    WidgetRef ref,
-  ) async {
+    WidgetRef ref, {
+    LocalFolder? localFolder,
+  }) async {
     _cancelTasks(downloadId: downloadId);
     ref.read(
       downloadChapterProvider(
         chapter: chapter,
         useWifi: useWifi,
+        localFolder: localFolder,
       ),
     );
   }
@@ -63,6 +68,8 @@ class ChapterPageDownload extends ConsumerWidget {
 
   Future<List<FileSystemEntity>> _downloadedFileEntities() async {
     final storageProvider = StorageProvider();
+    final folders = await getAllLocalFolders();
+    final manga = chapter.manga.value!;
     final chapterName = chapter.name!.replaceForbiddenCharacters(' ');
     final candidates = <FileSystemEntity>[];
 
@@ -81,16 +88,74 @@ class ChapterPageDownload extends ConsumerWidget {
         chapterDir,
       ]);
     }
+
+    for (final folder in folders) {
+      final folderPath = folder.path;
+      if (folderPath == null || folderPath.isEmpty) continue;
+      final localMangaDir = Directory(
+        p.join(folderPath, manga.name!.replaceForbiddenCharacters('_')),
+      );
+      final chapterDir = await storageProvider.getMangaChapterDirectory(
+        chapter,
+        mangaMainDirectory: localMangaDir,
+      );
+      candidates.addAll([
+        File(p.join(localMangaDir.path, "${chapter.name}.cbz")),
+        File(p.join(localMangaDir.path, "$chapterName.cbz")),
+        File(p.join(localMangaDir.path, "$chapterName.mp4")),
+        File(p.join(localMangaDir.path, "${chapter.name}.html")),
+        File(p.join(chapterDir!.path, "$chapterName.html")),
+        chapterDir,
+      ]);
+    }
     return candidates;
   }
 
-  void _downloadChapter(
+  Future<void> _downloadChapter(
     BuildContext context,
     WidgetRef ref, {
     bool? useWifi,
     int? downloadId,
-  }) {
-    _startDownload(useWifi, downloadId, ref);
+  }) async {
+    final saveToLocalLibrary =
+        ref.read(saveDownloadsToLocalLibraryStateProvider);
+    if (!saveToLocalLibrary) {
+      _startDownload(useWifi, downloadId, ref);
+      return;
+    }
+
+    final folders = await getAllLocalFolders();
+    if (folders.isEmpty || !context.mounted) return;
+    final shouldAsk = ref.read(askDownloadDestinationStateProvider);
+    if (!shouldAsk || folders.length == 1) {
+      final folder = !shouldAsk
+          ? await getDownloadLocalFolder()
+          : folders.first;
+      if (folder == null) return;
+      _startDownload(useWifi, downloadId, ref, localFolder: folder);
+      return;
+    }
+    showDialog(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(context.l10n.select_download_destination),
+        children: folders
+            .map(
+              (folder) => SimpleDialogOption(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _startDownload(useWifi, downloadId, ref, localFolder: folder);
+                },
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(folder.name ?? ""),
+                  subtitle: Text(folder.path ?? ""),
+                ),
+              ),
+            )
+            .toList(),
+      ),
+    );
   }
 
   @override

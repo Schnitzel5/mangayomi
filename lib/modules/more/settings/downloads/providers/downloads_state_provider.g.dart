@@ -434,3 +434,58 @@ abstract class _$DownloadDelaySecondsState extends $Notifier<int> {
     element.handleCreate(ref, build);
   }
 }
+
+@ProviderFor(SaveDownloadsToLocalLibraryState)
+final saveDownloadsToLocalLibraryStateProvider =
+    SaveDownloadsToLocalLibraryStateProvider._();
+
+final class SaveDownloadsToLocalLibraryStateProvider
+    extends $NotifierProvider<SaveDownloadsToLocalLibraryState, bool> {
+  SaveDownloadsToLocalLibraryStateProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'saveDownloadsToLocalLibraryStateProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$saveDownloadsToLocalLibraryStateHash();
+
+  @$internal
+  @override
+  SaveDownloadsToLocalLibraryState create() =>
+      SaveDownloadsToLocalLibraryState();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$saveDownloadsToLocalLibraryStateHash() =>
+    r'869e4902c712bf911ddd2a96ce7e9b395cde5e86';
+
+abstract class _$SaveDownloadsToLocalLibraryState extends $Notifier<bool> {
+  bool build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<bool, bool>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<bool, bool>,
+              bool,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}

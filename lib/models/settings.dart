@@ -344,6 +344,8 @@ class Settings {
 
   bool? askDownloadDestination;
 
+  bool? saveDownloadsToLocalLibrary;
+
   bool? appLockEnabled;
 
   int? libraryFilterMangasCompletedType;
@@ -579,6 +581,7 @@ class Settings {
     this.namedLocalFolders,
     this.downloadLocalFolderName,
     this.askDownloadDestination = true,
+    this.saveDownloadsToLocalLibrary = false,
     this.appLockEnabled = false,
     this.libraryFilterMangasCompletedType = 0,
     this.libraryFilterAnimeCompletedType = 0,
@@ -917,6 +920,7 @@ class Settings {
         .toList();
     downloadLocalFolderName = json['downloadLocalFolderName'];
     askDownloadDestination = json['askDownloadDestination'];
+    saveDownloadsToLocalLibrary = json['saveDownloadsToLocalLibrary'];
     appLockEnabled = json['appLockEnabled'];
     libraryFilterMangasCompletedType = json['libraryFilterMangasCompletedType'];
     libraryFilterAnimeCompletedType = json['libraryFilterAnimeCompletedType'];
@@ -1146,6 +1150,7 @@ class Settings {
     'namedLocalFolders': namedLocalFolders?.map((e) => e.toJson()).toList(),
     'downloadLocalFolderName': downloadLocalFolderName,
     'askDownloadDestination': askDownloadDestination,
+    'saveDownloadsToLocalLibrary': saveDownloadsToLocalLibrary,
     'appLockEnabled': appLockEnabled,
     'libraryFilterMangasCompletedType': libraryFilterMangasCompletedType,
     'libraryFilterAnimeCompletedType': libraryFilterAnimeCompletedType,
