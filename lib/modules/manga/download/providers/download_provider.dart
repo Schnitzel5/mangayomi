@@ -67,6 +67,7 @@ Future<void> downloadChapter(
   Ref ref, {
   required Chapter chapter,
   bool? useWifi,
+  LocalFolder? localFolder,
   VoidCallback? callback,
 }) async {
   final keepAlive = ref.keepAlive();
@@ -132,9 +133,27 @@ Future<void> downloadChapter(
     await storageProvider.requestPermission();
     final manga = chapter.manga.value!;
     final itemType = manga.itemType;
-    final mangaMainDirectory = (await storageProvider.getMangaMainDirectory(
-      chapter,
-    ))!;
+    final saveToLocalLibrary =
+        localFolder != null ||
+        ref.read(saveDownloadsToLocalLibraryStateProvider);
+    final targetLocalFolder = saveToLocalLibrary
+        ? (localFolder ?? await getDownloadLocalFolder())
+        : null;
+    final targetPath = targetLocalFolder?.path;
+    if (saveToLocalLibrary && (targetPath == null || targetPath.isEmpty)) {
+      botToast(
+        localizedMessage(
+          (l10n) => l10n.no_local_folder_available_for_downloads,
+        ),
+      );
+      keepAlive.close();
+      return;
+    }
+    final mangaMainDirectory = targetPath != null
+        ? Directory(
+            p.join(targetPath, manga.name!.replaceForbiddenCharacters('_')),
+          )
+        : (await storageProvider.getMangaMainDirectory(chapter))!;
     await storageProvider.createDirectorySafely(mangaMainDirectory.path);
     final metadataHeaders = (manga.isLocalArchive ?? false)
         ? null
@@ -220,45 +239,73 @@ Future<void> downloadChapter(
     Future<void> processConvert() async {
       await exportCoverFromDownloadedPages();
       if (!ref.read(saveAsCBZArchiveStateProvider)) return;
-      try {
-        // Extract chapter number from name (e.g., "Chapter 5" → "5")
-        final chapterNumber = ChapterRecognition().parseChapterNumber(
-          chapter.manga.value!.name!,
-          chapter.name!,
-        );
+      // Extract chapter number from name (e.g., "Chapter 5" → "5")
+      final chapterNumber = ChapterRecognition().parseChapterNumber(
+        chapter.manga.value!.name!,
+        chapter.name!,
+      );
 
-        final comicInfo = ComicInfoData(
-          title: chapter.name,
-          series: manga.name,
-          number: chapterNumber.toString(),
-          writer: manga.author,
-          penciller: manga.artist,
-          summary: manga.description,
-          genre: manga.genre?.join(', '),
-          translator: chapter.scanlator,
-          publishingStatusStr: manga.status.name,
+      final comicInfo = ComicInfoData(
+        title: chapter.name,
+        series: manga.name,
+        number: chapterNumber.toString(),
+        writer: manga.author,
+        penciller: manga.artist,
+        summary: manga.description,
+        genre: manga.genre?.join(', '),
+        translator: chapter.scanlator,
+        publishingStatusStr: manga.status.name,
+      );
+      final imageFiles = <File>[];
+      if (await chapterDirectory.exists()) {
+        imageFiles.addAll(
+          await chapterDirectory
+              .list()
+              .where(
+                (entity) =>
+                    entity is File &&
+                    p.extension(entity.path).toLowerCase() == '.jpg',
+              )
+              .cast<File>()
+              .toList(),
         );
-
-        await ref.read(
-          convertToCBZProvider(
-            chapterDirectory.path,
-            mangaMainDirectory.path,
-            chapterName,
-            pages.map((e) => e.fileName!).toList(),
-            comicInfo: comicInfo,
-          ).future,
-        );
-      } catch (error) {
-        botToast(localizedMessage((l10n) => l10n.failed_to_create_cbz(error)));
+        imageFiles.sort((a, b) => a.path.compareTo(b.path));
       }
+
+      await ref.read(
+        convertToCBZProvider(
+          chapterDirectory.path,
+          mangaMainDirectory.path,
+          chapterName,
+          imageFiles.map((file) => file.path).toList(),
+          comicInfo: comicInfo,
+        ).future,
+      );
+    }
+
+    Future<void> persistFinalMangaArtifact() async {
+      if (itemType != ItemType.manga) return;
+      final cbzFile = File(p.join(mangaMainDirectory.path, '$chapterName.cbz'));
+      final String artifactPath;
+      if (await cbzFile.exists()) {
+        artifactPath = cbzFile.absolute.path;
+      } else if (await chapterDirectory.exists()) {
+        artifactPath = chapterDirectory.absolute.path;
+      } else {
+        throw StateError('Downloaded manga artifact is missing');
+      }
+
+      chapter.archivePath = targetLocalFolder == null
+          ? artifactPath
+          : getLocalVirtualPath(targetLocalFolder, artifactPath);
+      await isar.writeTxn(() async {
+        await isar.chapters.put(chapter);
+      });
     }
 
     int lastPersistedPercent = -1;
     var lastPersistTime = DateTime.fromMillisecondsSinceEpoch(0);
     Future<void> setProgress(DownloadProgress progress) async {
-      if (progress.isCompleted && itemType == ItemType.manga) {
-        await processConvert();
-      }
       final percent = progress.completed == 0 || progress.total == 0
           ? 0
           : (progress.completed / progress.total * 100).toInt();
@@ -353,11 +400,7 @@ Future<void> downloadChapter(
           .read(getVideoListProvider(episode: chapter).future)
           .then((value) async {
             final m3u8Urls = value.$1
-                .where(
-                  (element) =>
-                      element.originalUrl.endsWith(".m3u8") ||
-                      element.originalUrl.endsWith(".m3u"),
-                )
+                .where((element) => isM3u8Url(element.originalUrl))
                 .toList();
             final nonM3u8Urls = value.$1
                 .where((element) => element.originalUrl.isMediaVideo())
@@ -483,7 +526,9 @@ Future<void> downloadChapter(
       if (!cbzFileExist && itemType == ItemType.manga ||
           !mp4FileExist && itemType == ItemType.anime ||
           !htmlFileExist && itemType == ItemType.novel) {
-        final mainDirectory = (await storageProvider.getDirectory())!;
+        final mainDirectory = targetPath != null
+            ? Directory(targetPath)
+            : (await storageProvider.getDirectory())!;
         storageProvider.createDirectorySafely(mainDirectory.path);
         for (var index = 0; index < pageUrls.length; index++) {
           if (Platform.isAndroid) {
@@ -549,6 +594,7 @@ Future<void> downloadChapter(
       if (pages.isEmpty && pageUrls.isNotEmpty) {
         await processConvert();
         savePageUrls();
+        await persistFinalMangaArtifact();
         await setProgress(DownloadProgress(1, 1, itemType, isCompleted: true));
       } else {
         savePageUrls();
@@ -558,9 +604,17 @@ Future<void> downloadChapter(
           subtitles: subtitles,
           subDownloadDir: subtitleDirectoryBase,
         ).download((progress) {
-          setProgress(progress);
+          if (itemType != ItemType.manga || !progress.isCompleted) {
+            setProgress(progress);
+          }
         });
-        await exportCoverFromDownloadedPages();
+        if (itemType == ItemType.manga) {
+          await processConvert();
+          await persistFinalMangaArtifact();
+          await setProgress(
+            DownloadProgress(1, 1, itemType, isCompleted: true),
+          );
+        }
       }
     } else if (itemType == ItemType.novel) {
       final file = File(p.join(chapterDirectory.path, "$chapterName.html"));
@@ -608,6 +662,11 @@ Future<void> downloadChapter(
   } finally {
     _DownloadGate.instance.release(sourceKey);
   }
+}
+
+bool isM3u8Url(String url) {
+  final path = Uri.tryParse(url)?.path.toLowerCase() ?? '';
+  return path.endsWith('.m3u8') || path.endsWith('.m3u');
 }
 
 /// Delay before releasing the next queued download from the gate. With rate
@@ -755,7 +814,11 @@ class _DownloadGate {
 }
 
 @riverpod
-Future<void> processDownloads(Ref ref, {bool? useWifi}) async {
+Future<void> processDownloads(
+  Ref ref, {
+  bool? useWifi,
+  LocalFolder? localFolder,
+}) async {
   final keepAlive = ref.keepAlive();
   try {
     // Fire in the user's manual queue order (#514) so the initial slots go to
@@ -783,7 +846,13 @@ Future<void> processDownloads(Ref ref, {bool? useWifi}) async {
       final chapter = downloadItem.chapter.value;
       if (chapter == null) continue;
       chapter.cancelDownloads(downloadItem.id);
-      ref.read(downloadChapterProvider(chapter: chapter, useWifi: useWifi));
+      ref.read(
+        downloadChapterProvider(
+          chapter: chapter,
+          useWifi: useWifi,
+          localFolder: localFolder,
+        ),
+      );
     }
   } catch (_) {
   } finally {
