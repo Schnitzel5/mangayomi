@@ -4115,6 +4115,18 @@ abstract class AppLocalizations {
   /// **'Rescan all local folders now'**
   String get rescan_local_folder;
 
+  /// No description provided for @save_downloads_to_local_library.
+  ///
+  /// In en, this message translates to:
+  /// **'Save downloads to local library'**
+  String get save_downloads_to_local_library;
+
+  /// No description provided for @save_downloads_to_local_library_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Save downloads into local library folders instead of the legacy downloads folder.'**
+  String get save_downloads_to_local_library_desc;
+
   /// No description provided for @default_download_destination.
   ///
   /// In en, this message translates to:

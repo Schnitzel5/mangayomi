@@ -2188,6 +2188,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get rescan_local_folder => 'すべてのローカルフォルダを今すぐ再スキャン';
 
   @override
+  String get save_downloads_to_local_library =>
+      'Save downloads to local library';
+
+  @override
+  String get save_downloads_to_local_library_desc =>
+      'Save downloads into local library folders instead of the legacy downloads folder.';
+
+  @override
   String get default_download_destination => 'Default download destination';
 
   @override

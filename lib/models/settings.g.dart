@@ -937,6 +937,11 @@ const SettingsSchema = CollectionSchema(
       name: r'saveAsCBZArchive',
       type: IsarType.bool,
     ),
+    r'saveDownloadsToLocalLibrary': PropertySchema(
+      id: 209,
+      name: r'saveDownloadsToLocalLibrary',
+      type: IsarType.bool,
+    ),
     r'savedSearchesList': PropertySchema(
       id: 175,
       name: r'savedSearchesList',
@@ -2039,6 +2044,7 @@ void _settingsSerialize(
   writer.writeBool(offsets[172], object.rpcShowReadingWatchingProgress);
   writer.writeBool(offsets[173], object.rpcShowTitle);
   writer.writeBool(offsets[174], object.saveAsCBZArchive);
+  writer.writeBool(offsets[209], object.saveDownloadsToLocalLibrary);
   writer.writeObjectList<SavedSearch>(
     offsets[175],
     allOffsets,
@@ -2393,6 +2399,7 @@ Settings _settingsDeserialize(
     rpcShowReadingWatchingProgress: reader.readBoolOrNull(offsets[172]),
     rpcShowTitle: reader.readBoolOrNull(offsets[173]),
     saveAsCBZArchive: reader.readBoolOrNull(offsets[174]),
+    saveDownloadsToLocalLibrary: reader.readBoolOrNull(offsets[209]),
     savedSearchesList: reader.readObjectList<SavedSearch>(
       offsets[175],
       SavedSearchSchema.deserialize,
@@ -16006,6 +16013,38 @@ extension SettingsQueryFilter
   }
 
   QueryBuilder<Settings, Settings, QAfterFilterCondition>
+  saveDownloadsToLocalLibraryIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'saveDownloadsToLocalLibrary'),
+      );
+    });
+  }
+
+  QueryBuilder<Settings, Settings, QAfterFilterCondition>
+  saveDownloadsToLocalLibraryIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(
+          property: r'saveDownloadsToLocalLibrary',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Settings, Settings, QAfterFilterCondition>
+  saveDownloadsToLocalLibraryEqualTo(bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'saveDownloadsToLocalLibrary',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Settings, Settings, QAfterFilterCondition>
   savedSearchesListIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -20158,6 +20197,20 @@ extension SettingsQuerySortBy on QueryBuilder<Settings, Settings, QSortBy> {
     });
   }
 
+  QueryBuilder<Settings, Settings, QAfterSortBy>
+  sortBySaveDownloadsToLocalLibrary() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'saveDownloadsToLocalLibrary', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Settings, Settings, QAfterSortBy>
+  sortBySaveDownloadsToLocalLibraryDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'saveDownloadsToLocalLibrary', Sort.desc);
+    });
+  }
+
   QueryBuilder<Settings, Settings, QAfterSortBy> sortByScaleType() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'scaleType', Sort.asc);
@@ -22482,6 +22535,20 @@ extension SettingsQuerySortThenBy
     });
   }
 
+  QueryBuilder<Settings, Settings, QAfterSortBy>
+  thenBySaveDownloadsToLocalLibrary() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'saveDownloadsToLocalLibrary', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Settings, Settings, QAfterSortBy>
+  thenBySaveDownloadsToLocalLibraryDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'saveDownloadsToLocalLibrary', Sort.desc);
+    });
+  }
+
   QueryBuilder<Settings, Settings, QAfterSortBy> thenByScaleType() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'scaleType', Sort.asc);
@@ -23924,6 +23991,13 @@ extension SettingsQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Settings, Settings, QDistinct>
+  distinctBySaveDownloadsToLocalLibrary() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'saveDownloadsToLocalLibrary');
+    });
+  }
+
   QueryBuilder<Settings, Settings, QDistinct> distinctByScaleType() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'scaleType');
@@ -25284,6 +25358,13 @@ extension SettingsQueryProperty
   QueryBuilder<Settings, bool?, QQueryOperations> saveAsCBZArchiveProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'saveAsCBZArchive');
+    });
+  }
+
+  QueryBuilder<Settings, bool?, QQueryOperations>
+  saveDownloadsToLocalLibraryProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'saveDownloadsToLocalLibrary');
     });
   }
 
