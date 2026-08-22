@@ -12,6 +12,25 @@ class LocalDirectoryAccess {
     return _channel.invokeMethod<String>('pickDirectory');
   }
 
+  static Future<String?> startAccessing(String path) async {
+    if (!Platform.isIOS) return path;
+    try {
+      final result = await _channel.invokeMethod<String>('startAccessing', {
+        'path': path,
+      });
+      return result ?? path;
+    } catch (_) {
+      return path;
+    }
+  }
+
+  static Future<void> stopAccessing(String path) async {
+    if (!Platform.isIOS) return;
+    try {
+      await _channel.invokeMethod('stopAccessing', {'path': path});
+    } catch (_) {}
+  }
+
   static Future<List<LocalDirectoryEntry>?> listDirectory(String path) async {
     if (!Platform.isIOS) return null;
     final result = await _channel.invokeMethod<List<dynamic>>('listDirectory', {

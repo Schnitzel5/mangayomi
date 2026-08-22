@@ -5,6 +5,7 @@ import 'package:mangayomi/eval/model/m_bridge.dart';
 import 'package:mangayomi/main.dart';
 import 'package:mangayomi/models/chapter.dart';
 import 'package:mangayomi/models/manga.dart';
+import 'package:mangayomi/modules/library/providers/file_scanner.dart';
 import 'package:mangayomi/modules/manga/archive_reader/models/models.dart';
 import 'package:mangayomi/modules/manga/archive_reader/providers/archive_reader_providers.dart';
 import 'package:mangayomi/src/rust/api/epub.dart';
@@ -52,8 +53,13 @@ Future importArchivesFromFile(
             updatedAt: dateNow,
             sourceId: null,
           );
+      final localFolders = await getAllLocalFolders();
 
       for (var file in result.files.reversed.toList()) {
+        final archivePath = localVirtualPathFromStoredPath(
+          file.path!,
+          localFolders,
+        );
         (String, LocalExtensionType, Uint8List, String)? data =
             itemType == ItemType.manga
             ? await ref.watch(
@@ -90,7 +96,7 @@ Future importArchivesFromFile(
                   Chapter(
                     mangaId: mangaId,
                     name: epubChapter.name,
-                    archivePath: file.path,
+                    archivePath: archivePath,
                     url: epubChapter.path,
                     updatedAt: DateTime.now().millisecondsSinceEpoch,
                   )..manga.value = manga,
@@ -102,7 +108,7 @@ Future importArchivesFromFile(
                 Chapter(
                   mangaId: mangaId,
                   name: book.name,
-                  archivePath: file.path,
+                  archivePath: archivePath,
                   updatedAt: DateTime.now().millisecondsSinceEpoch,
                 )..manga.value = manga,
               );
@@ -111,7 +117,7 @@ Future importArchivesFromFile(
             chapters.add(
               Chapter(
                 name: itemType == ItemType.manga ? data!.$1 : name,
-                archivePath: itemType == ItemType.manga ? data!.$4 : file.path,
+                archivePath: archivePath,
                 mangaId: manga.id,
                 updatedAt: DateTime.now().millisecondsSinceEpoch,
               )..manga.value = manga,

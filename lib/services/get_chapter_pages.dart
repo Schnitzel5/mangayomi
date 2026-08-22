@@ -66,7 +66,6 @@ Future<GetChapterPagesModel> getChapterPages(
     final resolvedArchivePath = isLocalArchive
         ? await resolveLocalArchivePath(chapter.archivePath!)
         : null;
-
     // A downloaded chapter has to open from disk, not from its source. Finding
     // the local copy before any network call is what lets it open with the
     // extension uninstalled, the site down, or no connection at all: getPageList
@@ -77,7 +76,7 @@ Future<GetChapterPagesModel> getChapterPages(
         : await findDownloadedChapter(chapter);
     if (downloaded?.pagesDirectory != null) path = downloaded!.pagesDirectory;
 
-    if (!chapter.manga.value!.isLocalArchive!) {
+    if (!isLocalArchive) {
       if ((isarPageUrls?.urls?.isNotEmpty ?? false) &&
           (isarPageUrls?.chapterUrl ?? chapter.url) == chapter.url) {
         pagesFromCache = true;
@@ -120,13 +119,18 @@ Future<GetChapterPagesModel> getChapterPages(
     final archivePath = isLocalArchive
         ? resolvedArchivePath
         : downloaded?.archive?.path;
+    final archiveExists =
+        archivePath != null &&
+        (await File(archivePath).exists() ||
+            await Directory(archivePath).exists());
 
-    if (pageUrls.isNotEmpty || archivePath != null || downloaded != null) {
-      if (archivePath != null) {
+    if (pageUrls.isNotEmpty || archiveExists || downloaded != null) {
+      if (archiveExists) {
         final local = await ref.read(
           getArchiveDataFromFileProvider(archivePath).future,
         );
-        for (var image in local.images!) {
+        for (var image in local.images ?? []) {
+          if (image.image == null) continue;
           archiveImages.add(image.image!);
           isLocaleList.add(true);
         }
