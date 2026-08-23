@@ -98,10 +98,27 @@ import UniformTypeIdentifiers
           return
         }
         result(self?.listLocalDirectory(path: path) ?? [])
+      case "startAccessing":
+        guard let args = call.arguments as? Dictionary<String, Any>,
+              let path = args["path"] as? String else {
+          result(FlutterError(code: "invalid_args", message: "Missing path", details: nil))
+          return
+        }
+        result(self?.startAccessingDirectory(path: path) ?? path)
+      case "stopAccessing":
+        guard let args = call.arguments as? Dictionary<String, Any>,
+              let path = args["path"] as? String else {
+          result(nil)
+          return
+        }
+        self?.stopAccessingDirectory(path: path)
+        result(nil)
       default:
         result(FlutterMethodNotImplemented)
       }
     })
+
+    restoreActiveSecurityScopedDirectories()
   }
 
   private func pickLocalDirectory(result: @escaping FlutterResult) {
@@ -193,6 +210,43 @@ import UniformTypeIdentifiers
     return url.path
   }
 
+  private func startAccessingDirectory(path: String) -> String {
+    let access = securityScopedUrl(for: path)
+    let url = access.url
+    if access.keepAccessing {
+      _ = url.startAccessingSecurityScopedResource()
+      return url.path
+    }
+    return path
+  }
+
+  private func stopAccessingDirectory(path: String) {
+    let normalizedPath = URL(fileURLWithPath: path).standardizedFileURL.path
+    if let key = longestMatchingPrefix(normalizedPath, in: activeSecurityScopedUrls.keys),
+       let url = activeSecurityScopedUrls.removeValue(forKey: key) {
+      url.stopAccessingSecurityScopedResource()
+    }
+    var bookmarks = localDirectoryBookmarks()
+    if let key = longestMatchingPrefix(normalizedPath, in: bookmarks.keys) {
+      bookmarks.removeValue(forKey: key)
+      UserDefaults.standard.set(bookmarks, forKey: localDirectoryBookmarksKey)
+    }
+  }
+
+  private func restoreActiveSecurityScopedDirectories() {
+    let bookmarks = localDirectoryBookmarks()
+    for (key, bookmark) in bookmarks {
+      if let rootUrl = resolveBookmark(bookmark, originalKey: key) {
+        if rootUrl.startAccessingSecurityScopedResource() {
+          activeSecurityScopedUrls[key] = rootUrl
+          NSLog("[LocalDirectoryAccess] Restored security scope for %@", key)
+        } else {
+          NSLog("[LocalDirectoryAccess] Failed to start accessing security scope for %@", key)
+        }
+      }
+    }
+  }
+
   private func listLocalDirectory(path: String) -> [[String: String]] {
     let access = securityScopedUrl(for: path)
     let url = access.url
@@ -230,13 +284,15 @@ import UniformTypeIdentifiers
     let normalizedPath = URL(fileURLWithPath: path).standardizedFileURL.path
     if let key = longestMatchingPrefix(normalizedPath, in: activeSecurityScopedUrls.keys),
        let rootUrl = activeSecurityScopedUrls[key] {
+      _ = rootUrl.startAccessingSecurityScopedResource()
       return (appendSuffix(from: key, to: normalizedPath, rootUrl: rootUrl), true)
     }
 
     let bookmarks = localDirectoryBookmarks()
     if let key = longestMatchingPrefix(normalizedPath, in: bookmarks.keys),
        let bookmark = bookmarks[key],
-       let rootUrl = resolveBookmark(bookmark) {
+       let rootUrl = resolveBookmark(bookmark, originalKey: key) {
+      _ = rootUrl.startAccessingSecurityScopedResource()
       activeSecurityScopedUrls[key] = rootUrl
       return (appendSuffix(from: key, to: normalizedPath, rootUrl: rootUrl), true)
     }
@@ -259,22 +315,42 @@ import UniformTypeIdentifiers
     return keys.filter { path == $0 || path.hasPrefix($0 + "/") }.max { $0.count < $1.count }
   }
 
-  private func resolveBookmark(_ data: Data) -> URL? {
+  private func resolveBookmark(_ data: Data, originalKey: String? = nil) -> URL? {
     var stale = false
     do {
+      #if os(macOS)
+      let options: URL.BookmarkResolutionOptions = [.withSecurityScope]
+      #else
+      let options: URL.BookmarkResolutionOptions = []
+      #endif
       let url = try URL(
         resolvingBookmarkData: data,
-        options: [],
+        options: options,
         relativeTo: nil,
         bookmarkDataIsStale: &stale
       )
       if stale {
         NSLog("[LocalDirectoryAccess] bookmark is stale path=%@", url.path)
+        refreshBookmark(for: url, originalKey: originalKey)
       }
       return url
     } catch {
       NSLog("[LocalDirectoryAccess] bookmark resolve failed: %@", error.localizedDescription)
       return nil
+    }
+  }
+
+  private func refreshBookmark(for url: URL, originalKey: String?) {
+    do {
+      let bookmark = try url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
+      var bookmarks = localDirectoryBookmarks()
+      if let originalKey = originalKey, originalKey != url.standardizedFileURL.path {
+        bookmarks.removeValue(forKey: originalKey)
+      }
+      bookmarks[url.standardizedFileURL.path] = bookmark
+      UserDefaults.standard.set(bookmarks, forKey: localDirectoryBookmarksKey)
+    } catch {
+      NSLog("[LocalDirectoryAccess] refresh bookmark failed: %@", error.localizedDescription)
     }
   }
 
